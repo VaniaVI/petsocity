@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fredoka } from "next/font/google";
-import  Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,33 +15,30 @@ const geistMono = Geist_Mono({
 
 const fredoka = Fredoka({ 
   subsets: ["latin"],
-  weight: ["300","400","500","600","700"] 
+  weight: ["300","400","500","600","700"],
 });
-
 
 export const metadata: Metadata = {
   title: "PetSocity",
   description: "Tienda de mascotas",
 };
 
-
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
       <head>
-        {/* Bootstrap CSS */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${fredoka.className} antialiased`}>
-        <Navbar/>
+        suppressHydrationWarning
+        className={`${fredoka.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Navbar />
         {children}
       </body>
     </html>
