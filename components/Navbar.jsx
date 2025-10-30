@@ -1,114 +1,73 @@
 'use client';
+import React from 'react';
+import { Navbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
+import Image from "next/image";
+import { PersonCircle, CartPlus } from 'react-bootstrap-icons';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-import React, { useState } from 'react';
-import { useCart } from '@/hooks/useCart';
-import { useBootstrap } from '@/hooks/useBootstrap';
-import Link from 'next/link';
-import Image from 'next/image';
-
-export default function Navbar() {
-  const { cartCount } = useCart();
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Inicializa Bootstrap (hook personalizado)
-  useBootstrap();
-
-  // Cerrar menú al hacer clic en un link
-  const handleNavClick = () => setIsOpen(false);
-
-  // Abrir modal de login
-  const handleLoginModal = () => {
-    setIsOpen(false);
-    setTimeout(() => {
-      const modalElement = document.getElementById('exampleModal');
-      if (modalElement && window.bootstrap) {
-        const modal = new window.bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    }, 100);
-  };
-
+export default function CustomNavbar() {
   return (
-    <nav className="navbar navbar-expand-xl navbar-light bg-light custom-navbar" style={{ fontFamily: "'Fredoka', sans-serif" }}>
-      <div className="container">
-        <Link className="navbar-brand d-flex align-items-center gap-2" href="/">
-          <Image src="/logoPetsocity.png" alt="Logo Petsocity" height={60} width={60}/>
-          <span style={{ fontWeight: 600 }}>PetSocity</span>
-        </Link>
+    <Navbar expand="lg" bg="light" data-bs-theme="light" className="shadow-sm py-3 bg-body-tertiary">
+      <Container>
+        {/* LOGO */}
+        <Navbar.Brand href="/" className="fw-bold text-primary">
+          <Image 
+            src="/logoPetsocity.png"
+            alt="Perro con juguete"
+            width={50}
+            height={50}
+          />
+        </Navbar.Brand>
 
-        <button
-          className="navbar-toggler"
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-controls="navbarSupportedContent"
-          aria-expanded={isOpen}
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+        {/* BOTÓN HAMBURGUESA */}
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-        <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarSupportedContent">
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item"><Link className="nav-link active" href="/" onClick={handleNavClick}>Home</Link></li>
+        {/* LINKS */}
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            <Nav.Link href="/" className="mx-2 text-dark fw-semibold">
+              Inicio
+            </Nav.Link>
 
-            <li className="nav-item dropdown">
-              <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Productos
-              </a>
-              <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a className="dropdown-item" href="/productos?categoria=todos" onClick={handleNavClick}>Ver todos los productos</a></li>
-                <li><a className="dropdown-item" href="/productos?categoria=accesorios" onClick={handleNavClick}>Accesorios</a></li>
-                <li><a className="dropdown-item" href="/productos?categoria=alimentos" onClick={handleNavClick}>Alimentos</a></li>
-                <li><hr className="dropdown-divider" /></li>
-                <li><a className="dropdown-item" href="/productos?categoria=ofertas" onClick={handleNavClick}>Ofertas especiales</a></li>
-              </ul>
-            </li>
+            <NavDropdown 
+              title={<span className="text-dark fw-semibold">Productos</span>} 
+              id="basic-nav-dropdown"
+              menuVariant="light"
+              className="mx-2"
+            >
+              <NavDropdown.Item href="#action/3.1">Ver todos los productos</NavDropdown.Item>
+              <NavDropdown.Item href="#action/3.2">Accesorios</NavDropdown.Item>
+              <NavDropdown.Item href="#action/3.3">Alimentos</NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item href="#action/3.4">Ofertas especiales</NavDropdown.Item>
+            </NavDropdown>
 
-            <li className="nav-item"><a className="nav-link" href="/nosotros" onClick={handleNavClick}>Nosotros</a></li>
-            <li className="nav-item"><a className="nav-link" href="/blogs" onClick={handleNavClick}>Blogs</a></li>
-            <li className="nav-item"><a className="nav-link" href="/paginaContacto" onClick={handleNavClick}>Contacto</a></li>
+            <Nav.Link href="/nosotros" className="mx-2 text-dark fw-semibold">
+              Nosotros
+            </Nav.Link>
+            <Nav.Link href="/contacto" className="mx-2 text-dark fw-semibold">
+              Contacto
+            </Nav.Link>
+          </Nav>
 
-            {/* Carrito y Login - Versión Móvil */}
-            <li className="nav-item d-xl-none mt-3">
-              <div className="d-flex align-items-center gap-2">
-                <div className="position-relative d-inline-block">
-                  <span className="material-symbols-outlined">add_shopping_cart</span>
-                  {cartCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {cartCount}
-                    </span>
-                  )}
-                </div>
-                <a className="nav-link" href="/carritoCompra" onClick={handleNavClick}>Carrito</a>
-              </div>
-            </li>
+          {/* BOTONES */}
+          <div className="d-flex">
+            <Button
+              variant="outline-primary"
+              className="me-2"
+              onClick={() => alert('Abrir modal de login')}
+            >
+              <PersonCircle size={24} />
+            </Button>
 
-            <li className="nav-item d-xl-none">
-              <button type="button" className="btn btn-link nav-link" onClick={handleLoginModal}>
-                <span className="material-symbols-outlined">account_circle</span> Iniciar Sesión
-              </button>
-            </li>
-          </ul>
-
-          {/* Carrito y Login - Desktop */}
-          <div className="d-none d-xl-flex align-items-center gap-3 pe-3">
-            <button type="button" className="btn btn-link p-0 text-dark" onClick={handleLoginModal}>
-              <span className="material-symbols-outlined">account_circle</span>
-            </button>
-            <a href="/carritoCompra" className="d-flex align-items-center gap-2 text-decoration-none text-dark">
-              <div className="position-relative d-inline-block">
-                <span className="material-symbols-outlined">add_shopping_cart</span>
-                {cartCount > 0 && (
-                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-              <span>Carrito</span>
-            </a>
+            <Nav.Link href="/carrito" className="mx-2">
+              <Button variant="outline-secondary">
+                <CartPlus size={24} />
+              </Button>
+            </Nav.Link>
           </div>
-        </div>
-      </div>
-    </nav>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
   );
 }

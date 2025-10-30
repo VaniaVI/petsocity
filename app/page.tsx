@@ -35,8 +35,8 @@ export default function Home() {
 
             <a
               href="/productos"
-              className="btn btn-warning d-inline-flex align-items-center gap-2 px-4 py-2 fw-medium rounded-3"
-              style={{ fontFamily: "'Fredoka', sans-serif" , color:"white"}}
+              className="btn d-inline-flex align-items-center gap-2 px-4 py-2 fw-medium rounded-3"
+              style={{ fontFamily: "'Fredoka', sans-serif" , color:"white", backgroundColor:'#6432B8'}}
             >
               ¡Compra ahora!
               <ArrowRightCircle size={24} color="white"/>

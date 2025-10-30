@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fredoka } from "next/font/google";
-import Navbar from "@/components/Navbar";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import NavbarPage from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,8 +40,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${fredoka.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
+        <NavbarPage />
         {children}
+        <Footer />
       </body>
     </html>
   );
