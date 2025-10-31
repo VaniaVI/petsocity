@@ -1,92 +1,30 @@
-'use client'
-import { useEffect, useRef } from "react";
+'use client';
+import { Modal, Button, Form } from 'react-bootstrap';
+import { useState } from 'react';
 
-export default function LoginModal({ show, onClose }) {
-  const modalRef = useRef(null);
-  const modalInstanceRef = useRef(null);
-
-  useEffect(() => {
-    // Importar Bootstrap solo en el cliente
-    const initializeModal = async () => {
-      const { Modal } = await import('bootstrap');
-      
-      if (modalRef.current) {
-        modalInstanceRef.current = new Modal(modalRef.current);
-        
-        // Manejar el evento cuando el modal se cierra
-        const handleHidden = () => {
-          onClose();
-        };
-
-        modalRef.current.addEventListener('hidden.bs.modal', handleHidden);
-
-        return () => {
-          if (modalRef.current) {
-            modalRef.current.removeEventListener('hidden.bs.modal', handleHidden);
-          }
-        };
-      }
-    };
-
-    initializeModal();
-
-    // Limpieza al desmontar
-    return () => {
-      if (modalInstanceRef.current) {
-        modalInstanceRef.current.dispose();
-      }
-    };
-  }, [onClose]);
-
-  useEffect(() => {
-    if (modalInstanceRef.current) {
-      if (show) {
-        modalInstanceRef.current.show();
-      } else {
-        modalInstanceRef.current.hide();
-      }
-    }
-  }, [show]);
-
+export default function LoginModal({ show, handleClose }) {
   return (
-    <div
-      className="modal fade"
-      id="loginModal"
-      tabIndex="-1"
-      aria-labelledby="loginModalLabel"
-      aria-hidden="true"
-      ref={modalRef}
-    >
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title" id="loginModalLabel">
-              Iniciar sesión
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            <form>
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">Correo</label>
-                <input type="email" className="form-control" id="email" placeholder="ejemplo@email.com" />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">Contraseña</label>
-                <input type="password" className="form-control" id="password" />
-              </div>
-              <button type="submit" className="btn btn-primary w-100">
-                Entrar
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Modal show={show} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Iniciar sesión</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>Correo electrónico</Form.Label>
+            <Form.Control type="email" placeholder="Ingresa tu correo" />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="formBasicPassword">
+            <Form.Label>Contraseña</Form.Label>
+            <Form.Control type="password" placeholder="Contraseña" />
+          </Form.Group>
+
+          <Button variant="primary" type="submit" className="w-100">
+            Iniciar sesión
+          </Button>
+        </Form>
+      </Modal.Body>
+    </Modal>
   );
 }

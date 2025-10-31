@@ -1,12 +1,17 @@
 'use client';
-import React from 'react';
+import { useState } from 'react';
 import { Navbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
 import Image from "next/image";
 import { PersonCircle, CartPlus } from 'react-bootstrap-icons';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import LoginModal from './LoginModal';
+import { useCart } from '@/hooks/useCart'; 
 
 export default function CustomNavbar() {
+  const [showLogin, setShowLogin] = useState(false);
+  const { cartCount } = useCart(); 
+
   return (
+    <>
     <Navbar expand="lg" bg="light" data-bs-theme="light" className="shadow-sm py-3 bg-body-tertiary">
       <Container>
         {/* LOGO */}
@@ -55,7 +60,7 @@ export default function CustomNavbar() {
             <Button
               variant="outline-primary"
               className="me-2"
-              onClick={() => alert('Abrir modal de login')}
+              onClick={() => setShowLogin(true)}
             >
               <PersonCircle size={24} />
             </Button>
@@ -63,11 +68,22 @@ export default function CustomNavbar() {
             <Nav.Link href="/carrito" className="mx-2">
               <Button variant="outline-secondary">
                 <CartPlus size={24} />
+                  <span
+                    className="position-absolute top-50 start-100  badge rounded-pill bg-danger"
+                    style={{ 
+                      fontSize: '0.7rem',
+                      transform: 'translate(-650%, -130%)'
+                    }}>
+                    {cartCount}
+                  </span>
               </Button>
             </Nav.Link>
           </div>
         </Navbar.Collapse>
       </Container>
     </Navbar>
+    {/* 🔹 Modal de Login */}
+    <LoginModal show={showLogin} handleClose={() => setShowLogin(false)} />
+  </>
   );
 }
