@@ -86,7 +86,4 @@ export function totals(metodo = "retiro") {
   const total = subtotal + envio;
   const totalItems = items.reduce((a, it) => a + (it.quantity || 0), 0);
   return { items, subtotal, envio, total, totalItems };
-}   
-
-
-
+}
