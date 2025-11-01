@@ -1,14 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import LoginModal from "../../components/LoginModal";
-import { useCart } from "../../hooks/useCart";
+import { Row, Col, Form, Button } from "react-bootstrap";
 
 export default function RegistrarUsuario() {
-  const { cartCount } = useCart();
+
 
   const [formData, setFormData] = useState({
     nombreCompleto: "",
@@ -38,10 +34,6 @@ export default function RegistrarUsuario() {
 
   return (
     <>
-      {/* Navbar global */}
-      <Navbar cartCount={cartCount} />
-      <LoginModal />
-
       {/* Contenido principal */}
       <main className="container pt-4">
         <article className="mb-5">
@@ -218,9 +210,6 @@ export default function RegistrarUsuario() {
           </div>
         </article>
       </main>
-
-      {/* Footer global */}
-      <Footer />
     </>
   );
 }
