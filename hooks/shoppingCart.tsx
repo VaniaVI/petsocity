@@ -19,8 +19,8 @@ export function getCart() {
     }
 }
 
-export function setCart() {
-    localStorage.setItem(KEY, JSON.stringify());
+export function setCart(arr) {
+    localStorage.setItem(KEY, JSON.stringify(arr));
     notify(); // avisamos a toda la app que hubo cambios
 }
 
