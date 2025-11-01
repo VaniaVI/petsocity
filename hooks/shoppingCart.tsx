@@ -1,4 +1,4 @@
-'use cliente';
+'use client';
 
 const KEY = "carrito";
 const MAX = 10; // Este es el tope por producto
