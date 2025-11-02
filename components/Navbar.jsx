@@ -41,10 +41,10 @@ export default function CustomNavbar() {
               className="mx-2"
             >
               <NavDropdown.Item href="./products">Ver todos los productos</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">Accesorios</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.3">Alimentos</NavDropdown.Item>
+              <NavDropdown.Item href="./products?category=accesorios">Accesorios</NavDropdown.Item>
+              <NavDropdown.Item href="./products?category=alimentos">Alimentos</NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.4">Ofertas especiales</NavDropdown.Item>
+              <NavDropdown.Item href="./products?tag=oferta">Ofertas especiales</NavDropdown.Item>
             </NavDropdown>
 
             <Nav.Link href="/nosotros" className="mx-2 text-dark fw-semibold">
