@@ -3,7 +3,7 @@
 export default function NosotrosPage() {
   return (
     <main className="container py-5">
-      {/* HERO breve */}
+      {/* Petsocity */}
       <section className="row align-items-center g-4 mb-5">
         <div className="col-12 col-lg-7">
           <h1 className="display-6 fw-semibold">Sobre PetSocity</h1>
@@ -13,7 +13,6 @@ export default function NosotrosPage() {
           </p>
         </div>
         <div className="col-12 col-lg-5 text-center">
-          {/* Usa tu imagen existente si la tienes en /public */}
           <img
             src="/image/logoPetsocity.png"
             alt="PetSocity"
@@ -22,7 +21,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* MISIÓN / VISIÓN (texto tomado de la primera versión) */}
+      {/* mision y vision */}
       <section className="row g-4 mb-5">
         <div className="col-12 col-md-6">
           <div className="card h-100 border-0 shadow-sm">
@@ -49,7 +48,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* PILARES (exactos de tu página: Calidad, Variedad, Logística) */}
+      {/* Pilares */}
       <section className="mb-5">
         <h2 className="h5 fw-semibold mb-3">Nuestros pilares</h2>
         <div className="row g-3">
@@ -74,7 +73,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* CTA (alineado a tu versión original) */}
+      {/* Contactanos */}
       <section className="text-center border rounded p-4 bg-light">
         <h2 className="h5 fw-semibold mb-2">¿Quieres sumarte a PetSocity?</h2>
         <p className="mb-3">
