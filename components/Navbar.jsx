@@ -12,7 +12,7 @@ export default function CustomNavbar() {
 
   return (
     <>
-    <Navbar expand="lg" bg="light" data-bs-theme="light" className="shadow-sm py-3 bg-body-tertiary">
+    <Navbar expand="lg" bg="light" data-bs-theme="light" className="shadow-sm bg-body-tertiary">
       <Container>
         {/* LOGO */}
         <Navbar.Brand href="/" className="fw-bold text-primary">
@@ -40,11 +40,11 @@ export default function CustomNavbar() {
               menuVariant="light"
               className="mx-2"
             >
-              <NavDropdown.Item href="#action/3.1">Ver todos los productos</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">Accesorios</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.3">Alimentos</NavDropdown.Item>
+              <NavDropdown.Item href="./products">Ver todos los productos</NavDropdown.Item>
+              <NavDropdown.Item href="./products?category=accesorios">Accesorios</NavDropdown.Item>
+              <NavDropdown.Item href="./products?category=alimentos">Alimentos</NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.4">Ofertas especiales</NavDropdown.Item>
+              <NavDropdown.Item href="./products?tag=oferta">Ofertas especiales</NavDropdown.Item>
             </NavDropdown>
 
             <Nav.Link href="/nosotros" className="mx-2 text-dark fw-semibold">
