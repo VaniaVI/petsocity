@@ -38,7 +38,7 @@ export const productos = [
   {
     id: 5,
     nombre: "Pack de ofertas",
-    categoria: "ofertas especiales",
+    categoria: "juguetes",
     etiquetas: ["oferta", "tendencia"],
     precio: 19990,
     descripcion: "Combo especial",
