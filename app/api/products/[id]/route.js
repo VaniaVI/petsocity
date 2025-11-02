@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { getProductoById, updateProducto, deleteProducto } from "@/lib/services/productsService";
 
-export async function GET(_, { params }) {
-  const producto = getProductoById(params.id);
-  return producto
-    ? NextResponse.json(producto)
-    : NextResponse.json({ error: "No encontrado" }, { status: 404 });
+export async function GET(request, context) {
+  const { id } = await context.params;
+
+  const productId = Number(id);
+
+  if (!productId || isNaN(productId)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+
+  const product = getProductoById(productId); // ✅ llamada correcta
+
+  if (!product) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
+  return NextResponse.json(product);
 }
+
 
 export async function PUT(req, { params }) {
   const data = await req.json();

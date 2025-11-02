@@ -1,8 +1,8 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Row, Col, Button, Form } from "react-bootstrap";
+import { Link } from "react-bootstrap-icons";
 
 export default function DetalleProducto() {
   const { id } = useParams(); // obtiene el id de la URL
@@ -41,7 +41,7 @@ export default function DetalleProducto() {
       {/* Breadcrumb */}
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item"><a href="/">Inicio</a></li>
+          <li className="breadcrumb-item"><Link href="/">Inicio</Link></li>
           <li className="breadcrumb-item">{producto.categoria}</li>
           <li className="breadcrumb-item active" aria-current="page">
             {producto.nombre}
