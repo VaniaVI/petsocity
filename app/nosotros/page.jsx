@@ -6,15 +6,16 @@ export default function NosotrosPage() {
       {/* Petsocity */}
       <section className="row align-items-center g-4 mb-5">
         <div className="col-12 col-lg-7">
-          <h1 className="display-6 fw-semibold">Sobre PetSocity</h1>
+          <h1 className="display-6 fw-semibold">¿Quienes somos?</h1>
           <p className="mt-2">
-            Las familias buscan facilidad y confianza al comprar productos para sus mascotas.
-            PetSocity simplifica la compra y ofrece una experiencia clara y cercana.
+            En Petsocity, somos una tienda chilena dedicada a ofrecer todo lo que tus mascotas necesitan para vivir felices y saludables. Nacimos con la idea de simplificar la experiencia de compra para las familias que buscan calidad, confianza y cercanía al elegir productos para sus compañeros de vida.
+            Nuestro compromiso es brindar un servicio transparente y amigable, con un catálogo pensado en el bienestar animal. En Petsocity creemos que cada mascota merece lo mejor, por eso seleccionamos productos de calidad, trabajamos con marcas confiables y ofrecemos distintos métodos de entrega para adaptarnos a ti.
+            Más que una tienda, somos un equipo que comparte el amor por los animales y busca acompañarte en cada etapa del cuidado de tus mascotas.
           </p>
         </div>
         <div className="col-12 col-lg-5 text-center">
           <img
-            src="/image/logoPetsocity.png"
+            src="/perroPregunta.png"
             alt="PetSocity"
             className="img-fluid rounded shadow-sm"
           />
