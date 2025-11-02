@@ -31,3 +31,12 @@ body::before {
   backdrop-filter: blur(4px);
   z-index: -1;
 }
+
+/* ✅ Nueva clase para truncar texto en tarjetas */
+.card-text-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;   /* máximo 2 líneas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

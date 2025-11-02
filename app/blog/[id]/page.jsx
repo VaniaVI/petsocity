@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Container, Spinner } from "react-bootstrap";
+import { Container, Row, Col, Card, Image, Spinner, Button } from "react-bootstrap";
 
 export default function BlogDetalle() {
   const { id } = useParams();
@@ -11,7 +11,6 @@ export default function BlogDetalle() {
 
   useEffect(() => {
     if (!id) return;
-
     const fetchPost = async () => {
       try {
         const res = await fetch(`/api/blog/${id}`, { cache: "no-store" });
@@ -24,7 +23,6 @@ export default function BlogDetalle() {
         setLoading(false);
       }
     };
-
     fetchPost();
   }, [id]);
 
@@ -42,23 +40,40 @@ export default function BlogDetalle() {
 
   return (
     <Container className="my-5">
-      <h1 className="mb-3">{post.titulo}</h1>
-      <img
-        src={post.imagen}
-        alt={post.titulo}
-        className="img-fluid mb-4 rounded"
-      />
-      <p>{post.contenido}</p>
-      {post.link && (
-        <a
-          href={post.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary mt-3"
-        >
-          Ver fuente
-        </a>
-      )}
+      <Row className="justify-content-center">
+        <Col md={10} lg={8}>
+          <Card className="shadow-lg border-0">
+            <Image
+              src={post.imagen}
+              alt={post.titulo}
+              fluid
+              rounded
+              className="w-100"
+              style={{ maxHeight: "400px", objectFit: "cover" }}
+            />
+            <Card.Body>
+              <Card.Title as="h2" className="mb-3 text-center">
+                {post.titulo}
+              </Card.Title>
+              <Card.Text style={{ lineHeight: "1.7", fontSize: "1.1rem" }}>
+                {post.contenido}
+              </Card.Text>
+              {post.link && (
+                <div className="text-center mt-4">
+                  <Button
+                    href={post.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="primary"
+                  >
+                    Ver fuente
+                  </Button>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </Container>
   );
 }

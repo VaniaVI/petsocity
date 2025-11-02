@@ -8,7 +8,7 @@ export const posts = [
       y que los ruidos, disfraces y luces pueden generar ansiedad. Se recomienda mantener a las mascotas en un lugar tranquilo,
       evitar que ingieran golosinas y tener especial cuidado con los gatos negros, que en estas fechas son más vulnerables.
     `,
-    imagen: "/image/blog1.jpg",
+    imagen: "/blog/halloween.jpg",
     link: "https://www.cnnchile.com/servicios/halloween-consejos-festividad-segura-mascotas_20251031/"
   },
   {
@@ -20,7 +20,7 @@ export const posts = [
       La propuesta busca que los trabajadores tengan derecho a un día libre pagado para vivir el duelo por la pérdida de su animal de compañía.
       En Chile, más de 10 millones de mascotas forman parte de los hogares, lo que refleja la relevancia de esta discusión.
     `,
-    imagen: "/image/blog2.jpg",
+    imagen: "/blog/leyduque.jpg",
     link: "https://www.elconcecuente.cl/noticia/sociedad/opinion-ley-duque-convivencia-y-derechos-el-equilibrio-pendiente-entre-humanos-y-ma"
   },
   {
@@ -31,7 +31,7 @@ export const posts = [
       En el marco del Día del Perro, un estudio de Worldpanel by Numerator mostró que el 70% de los hogares chilenos convive con al menos un perro o gato.
       Esto refleja un cambio cultural en el país, donde las mascotas son vistas como parte de la familia y generan nuevos hábitos de consumo.
     `,
-    imagen: "/image/blog3.jpg",
+    imagen: "/blog/7-10.png",
     link: "https://www.elmostrador.cl/agenda-pais/mascotas/2025/07/28/mascotas-protagonistas-7-de-cada-10-hogares-en-chile-conviven-con-al-menos-un-perro-o-gato/"
   },
   {
@@ -43,7 +43,7 @@ export const posts = [
       la sobrepesca y el cambio climático. Esta especie, que habita principalmente en la zona norte del país, enfrenta un futuro incierto
       si no se toman medidas urgentes de conservación.
     `,
-    imagen: "/image/blog4.jpg",
+    imagen: "/blog/pinguino.jpg",
     link: "https://www.biobiochile.cl/lista/categorias/animales"
   },
   {
@@ -54,7 +54,7 @@ export const posts = [
       El huemul, especie emblemática de la fauna chilena y en peligro de extinción, cuenta ahora con un centro especializado en rescate y rehabilitación.
       El objetivo es proteger a estos animales, recuperar ejemplares heridos y reinsertarlos en su hábitat natural.
     `,
-    imagen: "/image/blog5.jpg",
+    imagen: "/blog/primer-centro.jpg",
     link: "https://www.biobiochile.cl/lista/categorias/animales"
   },
   {
@@ -65,7 +65,7 @@ export const posts = [
       Durante una excursión en Torres del Paine, un grupo de turistas se encontró con un puma que los acompañó a distancia durante varios minutos.
       El animal no mostró agresividad y, según los expertos, este tipo de encuentros son cada vez más comunes debido a la recuperación de la especie en la zona.
     `,
-    imagen: "/image/blog6.jpg",
+    imagen: "/blog/puma.jpg",
     link: "https://www.biobiochile.cl/lista/categorias/animales"
   }
 ];
