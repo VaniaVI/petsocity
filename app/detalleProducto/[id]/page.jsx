@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Row, Col, Button, Form } from "react-bootstrap";
 import { Link } from "react-bootstrap-icons";
+import { addToCart } from "@/hooks/shoppingCart";
 
 export default function DetalleProducto() {
   const { id } = useParams(); // obtiene el id de la URL
@@ -28,8 +29,16 @@ export default function DetalleProducto() {
   }, [id]);
 
   const handleAgregarCarrito = () => {
-    console.log("Añadido al carrito:", { producto, cantidad });
-    // Aquí puedes integrar con useCart o localStorage
+    const cant = Math.max(1, Math.min(10, Number(cantidad) || 1)); // respeta MAX=10
+    addToCart(
+      {
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: Number(producto.precio) || 0,
+        img: producto.imagen ?? null,
+      },
+      cant
+    );
   };
 
   if (!producto) {

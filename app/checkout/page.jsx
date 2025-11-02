@@ -1,87 +1,74 @@
-'use client';
-import { useState } from 'react';
-import { totals, clearCart } from '../../hooks/shoppingCart';
-import Notify from '../../components/Notify';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useEffect, useState } from "react";
+import { totals, clearCart } from "@/hooks/shoppingCart";
+import Link from "next/link";
 
 export default function CheckoutPage() {
-  const [form, setForm] = useState({ nombre: '', email: '', direccion: '', comuna: '', metodo: 'domicilio' });
-  const [sending, setSending] = useState(false);
-  const [toast, setToast] = useState({ show: false, msg: '' });
-  const router = useRouter();
+  const [metodo, setMetodo] = useState("domicilio"); // o "retiro"
+  const [data, setData] = useState({ items: [], subtotal: 0, envio: 0, total: 0 });
+  const [ready, setReady] = useState(false);
+  const [alertKind, setAlertKind] = useState("secondary");
 
-  const t = totals(form.metodo);
+  // cargar totales solo para el cliente
+  useEffect(() => {
+    const t = totals(metodo);        // LocalStorage
+    setData(t);
+    setAlertKind(t.subtotal > 30000 || metodo === "retiro" ? "secondary" : "warning");
+    setReady(true);
+  }, [metodo]);
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!t.items.length) return alert('Tu carrito está vacío');
-    if (!form.nombre || !form.email) return alert('Completa nombre y email');
+  if (!ready) {
+    return <main className="container py-4"><h1>Checkout</h1><p className="text-muted">Cargando resumen…</p></main>;
+  }
 
-    setSending(true);
+  const onConfirm = async () => {
+    if (!data.items.length) return alert("Tu carrito está vacío.");
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: t.items, buyer: form, metodo: form.metodo, total: t.total }),
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: data.items, buyer: { nombre: "Cliente", email: "cliente@demo.cl" } }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo confirmar');
-
+      if (!res.ok) throw new Error("No se pudo confirmar");
+      // limpiar y redirigir
       clearCart();
-      setToast({ show: true, msg: `Orden ${data.orderId} confirmada. Te enviamos el detalle al correo.` });
-      setTimeout(() => router.push('/compra-exitosa'), 1500);
-    } catch (err) {
-      alert(err.message || 'Error al confirmar la compra');
-    } finally {
-      setSending(false);
+      window.location.href = "/compraExitosa";
+    } catch {
+      alert("Hubo un problema confirmando la compra.");
     }
   };
 
   return (
-    <main className="container py-5">
-      <Notify show={toast.show} message={toast.msg} onHide={() => setToast({ show: false, msg: '' })} />
-      <h1 className="mb-3">Checkout</h1>
+    <main className="container py-4">
+      <h1>Checkout</h1>
 
-      {!t.items.length ? (
-        <div className="alert alert-warning">Tu carrito está vacío.</div>
-      ) : (
-        <div className="alert alert-secondary d-flex justify-content-between">
-          <span><strong>Items:</strong> {t.totalItems} · <strong>Envío:</strong> ${t.envio.toLocaleString('es-CL')}</span>
-          <span><strong>Total:</strong> ${t.total.toLocaleString('es-CL')}</span>
-        </div>
-      )}
+      <div className={`alert alert-${alertKind} d-flex justify-content-between`}>
+        <span>
+          {metodo === "domicilio"
+            ? (data.subtotal > 30000 ? "Envío gratis por compras sobre $30.000." : "Costo de envío $3.990.")
+            : "Retiro en tienda sin costo de envío."}
+        </span>
+        <select
+          className="form-select w-auto"
+          value={metodo}
+          onChange={(e) => setMetodo(e.target.value)}
+        >
+          <option value="domicilio">Despacho a domicilio</option>
+          <option value="retiro">Retiro en tienda</option>
+        </select>
+      </div>
 
-      <form className="row g-3" onSubmit={submit}>
-        <div className="col-md-6">
-          <label className="form-label">Nombre</label>
-          <input className="form-control" value={form.nombre} onChange={(e)=>setForm({...form, nombre:e.target.value})} required />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">Email</label>
-          <input type="email" className="form-control" value={form.email} onChange={(e)=>setForm({...form, email:e.target.value})} required />
-        </div>
-        <div className="col-md-8">
-          <label className="form-label">Dirección</label>
-          <input className="form-control" value={form.direccion} onChange={(e)=>setForm({...form, direccion:e.target.value})} disabled={form.metodo==='retiro'} required={form.metodo==='domicilio'} />
-        </div>
-        <div className="col-md-4">
-          <label className="form-label">Comuna</label>
-          <input className="form-control" value={form.comuna} onChange={(e)=>setForm({...form, comuna:e.target.value})} disabled={form.metodo==='retiro'} required={form.metodo==='domicilio'} />
-        </div>
-        <div className="col-md-4">
-          <label className="form-label">Método de entrega</label>
-          <select className="form-select" value={form.metodo} onChange={(e)=>setForm({...form, metodo:e.target.value})}>
-            <option value="domicilio">Despacho a domicilio</option>
-            <option value="retiro">Retiro en tienda</option>
-          </select>
-        </div>
-        <div className="col-12 d-flex gap-2">
-          <button type="submit" className="btn btn-success" disabled={!t.items.length || sending}>
-            {sending ? 'Confirmando…' : 'Confirmar compra'}
-          </button>
-          <a href="/carrito" className="btn btn-outline-secondary">Volver al carrito</a>
-        </div>
-      </form>
+      <div className="card p-3">
+        <div className="d-flex justify-content-between"><span>Subtotal</span><strong>${data.subtotal.toLocaleString("es-CL")}</strong></div>
+        <div className="d-flex justify-content-between"><span>Envío</span><strong>${data.envio.toLocaleString("es-CL")}</strong></div>
+        <hr />
+        <div className="d-flex justify-content-between"><span>Total</span><strong>${data.total.toLocaleString("es-CL")}</strong></div>
+      </div>
+
+      <div className="d-flex gap-2 mt-3">
+        <button className="btn btn-success" onClick={onConfirm}>Confirmar compra</button>
+        <Link href="/carrito" className="btn btn-outline-secondary">Volver al carrito</Link>
+      </div>
     </main>
   );
 }
