@@ -23,7 +23,7 @@ export default function ProductCard({ product }) {
         </Card.Text>
 
         {/* Aquí: Button usa Link internamente */}
-        <Button as={Link} href={`/detalleProducto/${product.id}`} variant="primary">
+        <Button as={Link} href={`/products/${product.id}`} variant="primary">
           Ver detalle
         </Button>
       </Card.Body>
