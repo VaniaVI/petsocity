@@ -4,11 +4,11 @@ import { Navbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
 import Image from "next/image";
 import { PersonCircle, CartPlus } from 'react-bootstrap-icons';
 import LoginModal from './LoginModal';
-import { useCart } from '@/hooks/useCart'; 
+import { useCartCount } from '@/hooks/useCartCount'; 
 
 export default function CustomNavbar() {
   const [showLogin, setShowLogin] = useState(false);
-  const { cartCount } = useCart(); 
+  const { cartCount } = useCartCount(); 
 
   return (
     <>

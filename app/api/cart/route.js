@@ -1,4 +1,4 @@
-app/carrito.jsx
+api/cart/route.js
 // app/api/cart/route.js
 // ⚠️ NOTA: Este archivo API es OPCIONAL ya que usamos localStorage client-side
 // Solo implementar si necesitas sincronización con backend o autenticación
