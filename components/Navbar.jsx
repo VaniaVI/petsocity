@@ -6,12 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { PersonCircle, CartPlus } from 'react-bootstrap-icons';
 import LoginModal from './LoginModal';
-import { useCart } from '@/hooks/useCart';
+import { useCartCount } from '@/hooks/useCartCount';
 import { usePathname } from "next/navigation";
 
 export default function CustomNavbar() {
   const [showLogin, setShowLogin] = useState(false);
-  const { cartCount } = useCart();
+  const { cartCount } = useCartCount();
   const pathname = usePathname();
 
   // función para marcar activo (sin tipos, porque es .jsx)

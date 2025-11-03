@@ -2,108 +2,264 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  Container,
-  Row,
-  Col,
-  Button,
-  Form,
-  Breadcrumb,
-  Card,
-  Spinner,
-} from "react-bootstrap";
+import { Container , Row , Col , Button , Form , Breadcrumb , Card , Spinner , Alert} from "react-bootstrap";
 import Link from "next/link";
+import { useCart } from "@/hooks/useCart.js";
+import { fmtCLP } from "@/lib/formatters";
 
 export default function DetalleProducto() {
   const { id } = useParams();
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
   const [cantidad, setCantidad] = useState(1);
+  const [cantidadAgregada, setCantidadAgregada] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+
+  // ✅ Obtener addItem y constants del hook useCart
+  const { addItem, constants } = useCart();
+
+  // Cargar producto y relacionados
   useEffect(() => {
     if (!id) return;
 
     const fetchProducto = async () => {
+      setLoading(true);
       try {
         const res = await fetch(`/api/products/${id}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Error al cargar producto");
         const data = await res.json();
         setProducto(data);
 
-        // ✅ cargar productos relacionados por categoría
-        const resRel = await fetch(`/api/products?categoria=${data.categoria}`);
-        if (resRel.ok) {
-          const dataRel = await resRel.json();
-          // filtrar el mismo producto
-          setRelacionados(dataRel.filter((p) => p.id !== data.id));
+        // ✅ Cargar productos relacionados por categoría
+        if (data.categoria) {
+          const resRel = await fetch(`/api/products?categoria=${data.categoria}`);
+          if (resRel.ok) {
+            const dataRel = await resRel.json();
+            // Filtrar el mismo producto y limitar a 3
+            setRelacionados(dataRel.filter((p) => p.id !== data.id).slice(0, 3));
+          }
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error cargando producto:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchProducto();
   }, [id]);
 
-  const handleAgregarCarrito = () => {
-    console.log("Añadido al carrito:", { producto, cantidad });
+  // validación 
+  const handleCantidadChange = (e) => {
+    const val = Number(e.target.value);
+    // Validar rango
+    if (val >= 1 && val <= constants.MAX_PER_ITEM) {
+      setCantidad(val);
+    } else if (val < 1) {
+      setCantidad(1);
+    } else {
+      setCantidad(constants.MAX_PER_ITEM);
+    }
   };
 
+  // validacion
+  const incrementarCantidad = () => {
+    if (cantidad < constants.MAX_PER_ITEM) {
+      setCantidad(cantidad + 1);
+    }
+  };
+
+  const decrementarCantidad = () => {
+    if (cantidad > 1) {
+      setCantidad(cantidad - 1);
+    }
+  };
+
+  const handleAgregarCarrito = () => {
+    if (!producto) return;
+
+    // Validar cantidad con los límites del servicio
+    const cant = Math.max(1, Math.min(constants.MAX_PER_ITEM, Number(cantidad) || 1));
+
+    addItem(
+      {
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: Number(producto.precio) || 0,
+        img: producto.imagen ?? null,
+      },
+      cant
+    );
+
+    // Se guarda la cantidad en la siguietne variable para luego ser utilizada en el mensaje de exito
+    setCantidadAgregada(cant);
+    // Mostrar mensaje de éxito
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+
+    // Resetear cantidad a 1
+    setCantidad(1);
+  };
+
+  // Estado de carga
+  if (loading) {
+    return (
+      <Container className="text-center mt-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-3">Cargando producto...</p>
+      </Container>
+    );
+  }
+
+  // Producto no encontrado
   if (!producto) {
     return (
       <Container className="text-center mt-5">
-        <Spinner animation="border" /> <p>Cargando producto...</p>
+        <Alert variant="warning">
+          <Alert.Heading>Producto no encontrado</Alert.Heading>
+          <p>El producto que buscas no existe o fue eliminado.</p>
+          <Link href="/products" passHref>
+            <Button variant="primary">Ver todos los productos</Button>
+          </Link>
+        </Alert>
       </Container>
     );
   }
 
   return (
     <Container className="my-5">
+      {/* Alerta de éxito */}
+      {showSuccess && (
+        <Alert
+          variant="success"
+          dismissible
+          onClose={() => setShowSuccess(false)}
+          className="mb-4"
+        >
+          <Alert.Heading>¡Producto agregado!</Alert.Heading>
+          <p className="mb-0">
+            Se agregó {cantidadAgregada} {cantidadAgregada === 1 ? "unidad" : "unidades"} de{" "}
+            <strong>{producto.nombre}</strong> al carrito.
+          </p>
+        </Alert>
+      )}
+
       {/* Breadcrumb */}
-      <Breadcrumb>
-        <Breadcrumb.Item linkAs={Link} href="/">Inicio</Breadcrumb.Item>
-        <Breadcrumb.Item active>{producto.categoria}</Breadcrumb.Item>
+      <Breadcrumb className="mb-4">
+        <Breadcrumb.Item linkAs={Link} href="/">
+          Inicio
+        </Breadcrumb.Item>
+        <Breadcrumb.Item linkAs={Link} href="/productos">
+          Productos
+        </Breadcrumb.Item>
+        {producto.categoria && (
+          <Breadcrumb.Item active>{producto.categoria}</Breadcrumb.Item>
+        )}
         <Breadcrumb.Item active>{producto.nombre}</Breadcrumb.Item>
       </Breadcrumb>
 
       {/* Detalle del producto */}
       <Row className="g-4 align-items-start mb-5">
+        {/* Columna izquierda: Imagen */}
         <Col md={6}>
           <Card className="shadow-sm border-0">
             <Card.Img
               variant="top"
-              src={producto.imagen}
+              src={producto.imagen || "/placeholder.jpg"}
               alt={producto.nombre}
-              style={{ objectFit: "cover", maxHeight: "400px" }}
+              style={{ objectFit: "cover", maxHeight: "500px", width: "100%" }}
             />
           </Card>
         </Col>
 
+        {/* Columna derecha: Información */}
         <Col md={6}>
-          <h2 className="mb-3">{producto.nombre}</h2>
-          <p className="h4 text-success fw-bold mb-3">${producto.precio}</p>
-          <p className="text-muted mb-4">{producto.descripcion}</p>
+          <h1 className="h3 mb-3 fw-bold">{producto.nombre}</h1>
 
-          <Row className="g-2 align-items-center mb-4">
-            <Col xs="auto">
-              <label htmlFor="cantidad" className="fw-bold">
-                Cantidad:
-              </label>
-            </Col>
-            <Col xs="auto">
-              <Form.Control
-                type="number"
-                id="cantidad"
-                min="1"
-                value={cantidad}
-                onChange={(e) => setCantidad(Number(e.target.value))}
-                style={{ width: "80px" }}
-              />
-            </Col>
-          </Row>
+          {/* Precio formateado con fmtCLP */}
+          <div className="mb-3">
+            <span className="h4 text-success fw-bold">
+              {fmtCLP(producto.precio)}
+            </span>
+          </div>
 
-          <Button variant="primary" size="lg" onClick={handleAgregarCarrito}>
-            Añadir al carrito
-          </Button>
+          {producto.descripcion && (
+            <p className="text-muted mb-4">{producto.descripcion}</p>
+          )}
+
+          {/* Stock disponible */}
+          {producto.stock && (
+            <div className="mb-3">
+              <span className="badge bg-success">
+                ✓ Stock disponible: {producto.stock} unidades
+              </span>
+            </div>
+          )}
+
+          {/* Selector de cantidad CON BOTONES (Mejor UX) */}
+          <Form.Group className="mb-4">
+            <Form.Label className="fw-bold">Cantidad:</Form.Label>
+            <div className="d-flex align-items-center gap-2">
+              <div className="btn-group" role="group">
+                <Button
+                  variant="outline-secondary"
+                  onClick={decrementarCantidad}
+                  disabled={cantidad <= 1}
+                  aria-label="Disminuir cantidad"
+                >
+                  −
+                </Button>
+                <Form.Control
+                  type="number"
+                  min="1"
+                  max={constants.MAX_PER_ITEM}
+                  value={cantidad}
+                  onChange={handleCantidadChange}
+                  style={{ width: "50px", textAlign: "center" }}
+                  className="border-secondary"
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={incrementarCantidad}
+                  disabled={cantidad >= constants.MAX_PER_ITEM}
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </Button>
+              </div>
+              <small className="text-muted">
+                Máximo {constants.MAX_PER_ITEM} unidades
+              </small>
+            </div>
+          </Form.Group>
+
+          {/* Botones de acción */}
+          <div className="d-grid gap-2 mb-3">
+            <Button variant="primary" size="lg" onClick={handleAgregarCarrito}>
+              Añadir al carrito
+            </Button>
+
+            <Link href="/carrito" passHref>
+              <Button variant="outline-secondary" size="lg">
+                Ver carrito
+              </Button>
+            </Link>
+          </div>
+
+          {/* Información adicional */}
+          <div className="border-top pt-3 mt-4">
+            <h6 className="fw-bold mb-3">Información adicional</h6>
+            <ul className="list-unstyled small text-muted">
+              <li className="mb-2">
+                ✓ Envío gratis sobre {fmtCLP(constants.ENVIO_GRATIS_MINIMO)}
+              </li>
+              <li className="mb-2">✓ Retiro en tienda disponible</li>
+              <li className="mb-2">✓ Garantía de 30 días</li>
+              <li className="mb-2">✓ Pago seguro</li>
+            </ul>
+          </div>
         </Col>
       </Row>
 
@@ -112,23 +268,26 @@ export default function DetalleProducto() {
         <>
           <h3 className="mb-4">Productos relacionados</h3>
           <Row className="g-4">
-            {relacionados.slice(0, 3).map((rel) => (
+            {relacionados.map((rel) => (
               <Col key={rel.id} xs={12} sm={6} lg={4}>
-                <Card className="h-100 shadow-sm">
+                <Card className="h-100 shadow-sm hover-shadow">
                   <Card.Img
                     variant="top"
-                    src={rel.imagen}
+                    src={rel.imagen || "/placeholder.jpg"}
                     alt={rel.nombre}
                     style={{ height: "200px", objectFit: "cover" }}
                   />
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title>{rel.nombre}</Card.Title>
+                    <Card.Title className="text-truncate" title={rel.nombre}>
+                      {rel.nombre}
+                    </Card.Title>
+                    {/* Precio formateado */}
                     <Card.Text className="text-success fw-bold">
-                      ${rel.precio}
+                      {fmtCLP(rel.precio)}
                     </Card.Text>
                     <div className="mt-auto">
-                      <Link href={`/products/${rel.id}`} passHref>
-                        <Button variant="outline-primary" size="sm">
+                      <Link href={`/products/${rel.id}`} passHref legacyBehavior>
+                        <Button variant="outline-primary" size="sm" as="a">
                           Ver detalle
                         </Button>
                       </Link>
