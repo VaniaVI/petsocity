@@ -6,16 +6,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { PersonCircle, CartPlus } from 'react-bootstrap-icons';
 import LoginModal from './LoginModal';
-import { useCartCount } from '@/hooks/useCartCount';
+import { useCart } from '@/hooks/useCart';
 import { usePathname } from "next/navigation";
 
-export default function CustomNavbar() {
+export default function NavbarPage() {
   const [showLogin, setShowLogin] = useState(false);
-  const { cartCount } = useCartCount();
+  const { itemCount  } = useCart();
   const pathname = usePathname();
 
   // función para marcar activo (sin tipos, porque es .jsx)
   const isActive = (path) => pathname === path;
+  console.log("CANTIDAD CARRITO:", itemCount);
 
   return (
     <>
@@ -96,16 +97,24 @@ export default function CustomNavbar() {
                 <PersonCircle size={24} />
               </Button>
 
-              <Nav.Link as={Link} href="/carrito" className="mx-2">
-                <Button variant="outline-secondary" className="position-relative">
+              <Nav.Link as={Link} href="/carrito" className="mx-2 position-relative">
+                <Button variant="outline-secondary">
                   <CartPlus size={24} />
-                  {cartCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {cartCount}
+
+                  {itemCount > 0 && (
+                    <span
+                      className="position-absolute  badge rounded-pill bg-danger"
+                      style={{
+                        fontSize: "0.75rem", 
+                        transform: "translate(40% , -10%)"
+                       }}
+                    >
+                      {itemCount}
                     </span>
                   )}
                 </Button>
               </Nav.Link>
+
             </div>
           </Navbar.Collapse>
         </Container>
