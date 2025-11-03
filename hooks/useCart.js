@@ -4,7 +4,7 @@
 // ✅ Hook principal para gestión completa del carrito
 
 import { useEffect, useState, useCallback } from "react";
-import * as cartService from "@/lib/services/cartService";
+import * as cartService from "@/lib/services/cartServices.js";
 
 /**
  * Hook para gestión completa del carrito con método de envío

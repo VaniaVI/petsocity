@@ -1,20 +1,11 @@
-app/checkout
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Container, Row, Col, Table, Form, Button, Card } from "react-bootstrap";
 import { useCart } from "@/hooks/useCart";
 import { fmtCLP } from "@/lib/formatters";
 
 export default function CheckoutPage() {
-  const {
-    items,
-    subtotal,
-    envio,
-    total,
-    metodo,
-    setMetodo,
-    clearCart,
-    constants,
+  const { items, subtotal , envio , total , metodo , setMetodo , clearCart , constants
   } = useCart("domicilio");
 
   const [formData, setFormData] = useState({
@@ -364,7 +355,7 @@ export default function CheckoutPage() {
               {/* Mensaje de envío gratis */}
               {metodo === "domicilio" && envio === 0 && subtotal >= constants.ENVIO_GRATIS_MINIMO && (
                 <div className="alert alert-success mt-3 py-2 px-3 small mb-0">
-                  🎉 ¡Envío gratis aplicado!
+                  ¡Envío gratis aplicado!
                 </div>
               )}
             </Card.Body>
