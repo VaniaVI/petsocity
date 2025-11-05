@@ -16,7 +16,6 @@ export default function NavbarPage() {
 
   // función para marcar activo (sin tipos, porque es .jsx)
   const isActive = (path) => pathname === path;
-  console.log("CANTIDAD CARRITO:", itemCount);
 
   return (
     <>

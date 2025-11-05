@@ -23,7 +23,7 @@ export default function CartPage() {
               Explora nuestros productos y agrega lo que más te guste
             </p>
           </div>
-          <a href="/productos" className="btn btn-primary mt-3">
+          <a href="/products" className="btn btn-primary mt-3">
             Ver productos
           </a>
         </div>

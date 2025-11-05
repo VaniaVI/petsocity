@@ -1,117 +1,151 @@
+// app/registroUsuario/page.jsx
 "use client";
-
 import { useState } from "react";
-import {
-  Row,
-  Col,
-  Form,
-  Button,
-  Container,
-  Card,
-  InputGroup,
-} from "react-bootstrap";
+import { Row, Col, Form, Button, Container, Card, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import {
+  validateNombre,
+  validateCorreo,
+  validateMatch,
+  validatePassword,
+  validateTelefono,
+  validateSelect,
+  validateTerminos,
+} from "@/lib/validators";
+import { crearCliente } from "@/lib/services/clientService";
 
 export default function RegistrarUsuario() {
-  const [formData, setFormData] = useState({
-    nombreCompleto: "",
-    correo: "",
-    verificarCorreo: "",
-    password: "",
-    verificarPassword: "",
-    telefono: "",
-    region: "",
-    comuna: "",
-    terminos: false,
-  });
-
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
 
-  const handleChange = (e) => {
-    const { id, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [id]: type === "checkbox" ? checked : value,
-    });
+  // ✅ Reglas de validación centralizadas
+  const validationRules = (data, fieldName, fieldValue) => {
+    const errors = {};
+    const value = fieldValue !== undefined ? fieldValue : data[fieldName];
+
+    // Si se está validando un campo específico
+    if (fieldName) {
+      switch (fieldName) {
+        case "nombreCompleto":
+          errors.nombreCompleto = validateNombre(value);
+          break;
+        case "correo":
+          errors.correo = validateCorreo(value, "duoc.cl");
+          break;
+        case "verificarCorreo":
+          errors.verificarCorreo = validateMatch(data.correo, value, "Los correos");
+          break;
+        case "password":
+          errors.password = validatePassword(value);
+          break;
+        case "verificarPassword":
+          errors.verificarPassword = validateMatch(data.password, value, "Las contraseñas");
+          break;
+        case "telefono":
+          errors.telefono = validateTelefono(value, false);
+          break;
+        case "region":
+          errors.region = validateSelect(value, "La región");
+          break;
+        case "comuna":
+          errors.comuna = validateSelect(value, "La comuna");
+          break;
+        case "terminos":
+          errors.terminos = validateTerminos(value);
+          break;
+      }
+      return errors;
+    }
+
+    // Validar todo el formulario
+    errors.nombreCompleto = validateNombre(data.nombreCompleto);
+    errors.correo = validateCorreo(data.correo, "duoc.cl");
+    errors.verificarCorreo = validateMatch(data.correo, data.verificarCorreo, "Los correos");
+    errors.password = validatePassword(data.password);
+    errors.verificarPassword = validateMatch(data.password, data.verificarPassword, "Las contraseñas");
+    errors.telefono = validateTelefono(data.telefono, false);
+    errors.region = validateSelect(data.region, "La región");
+    errors.comuna = validateSelect(data.comuna, "La comuna");
+    errors.terminos = validateTerminos(data.terminos);
+
+    // Filtrar errores vacíos
+    return Object.fromEntries(
+      Object.entries(errors).filter(([_, v]) => v !== "")
+    );
   };
 
-  const validate = () => {
-    let newErrors = {};
+  // ✅ Hook de validación
+  const {
+    formData,
+    errors,
+    touched,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    validateForm,
+    touchAllFields,
+    resetForm,
+    setIsSubmitting,
+  } = useFormValidation(
+    {
+      nombreCompleto: "",
+      correo: "",
+      verificarCorreo: "",
+      password: "",
+      verificarPassword: "",
+      telefono: "",
+      region: "",
+      comuna: "",
+      terminos: false,
+    },
+    validationRules
+  );
 
-    // Nombre
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,50}$/.test(formData.nombreCompleto)) {
-      newErrors.nombreCompleto = "Solo letras y espacios (máx 50 caracteres)";
-    }
-
-    // Correo
-    if (!/^[a-zA-Z0-9._%+-]+@duoc\.cl$/.test(formData.correo)) {
-      newErrors.correo = "Debe ser un correo válido con dominio @duoc.cl";
-    }
-
-    // Confirmar correo
-    if (formData.correo !== formData.verificarCorreo) {
-      newErrors.verificarCorreo = "Los correos no coinciden";
-    }
-
-    // Password
-    if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/.test(
-        formData.password
-      )
-    ) {
-      newErrors.password =
-        "Debe tener al menos 8 caracteres, incluir mayúscula, minúscula, número y símbolo";
-    }
-
-    // Confirmar password
-    if (formData.password !== formData.verificarPassword) {
-      newErrors.verificarPassword = "Las contraseñas no coinciden";
-    }
-
-    // Teléfono (opcional)
-    if (formData.telefono && !/^9\d{8}$/.test(formData.telefono)) {
-      newErrors.telefono = "Debe ser un número válido, ej: 912345678";
-    }
-
-    // Región y comuna
-    if (!formData.region) newErrors.region = "Selecciona una región";
-    if (!formData.comuna) newErrors.comuna = "Selecciona una comuna";
-
-    // Términos
-    if (!formData.terminos) {
-      newErrors.terminos = "Debes aceptar los términos";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
+  // ✅ Manejo del submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      console.log("Datos enviados:", formData);
+    touchAllFields();
+
+    if (!validateForm()) {
+      alert("Por favor corrige los errores en el formulario");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Separar nombre y apellidos (simplificado)
+      const nombreCompleto = formData.nombreCompleto.trim();
+      const partes = nombreCompleto.split(" ");
+      const nombre = partes[0];
+      const apellidos = partes.slice(1).join(" ") || nombre;
+
+      // Crear cliente
+      const clienteData = {
+        nombre,
+        apellidos,
+        correo: formData.correo,
+        telefono: formData.telefono || null,
+        direccion: {
+          region: formData.region,
+          comuna: formData.comuna,
+        },
+      };
+
+      await crearCliente(clienteData);
+
       alert("Registro exitoso ✅");
+      console.log("Se guarda cliente" , JSON.stringify(clienteData, null, 2));
+      resetForm();
 
-      // 🔹 Reiniciar los campos
-      setFormData({
-        nombreCompleto: "",
-        correo: "",
-        verificarCorreo: "",
-        password: "",
-        verificarPassword: "",
-        telefono: "",
-        region: "",
-        comuna: "",
-        terminos: false,
-      });
-
-      // 🔹 También limpiar errores
-      setErrors({});
+    } catch (error) {
+      console.error("Error en registro:", error);
+      alert("Hubo un problema al registrar el usuario. Intenta nuevamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
 
   return (
     <Container className="pt-4">
@@ -123,13 +157,15 @@ export default function RegistrarUsuario() {
 
               <Form noValidate onSubmit={handleSubmit}>
                 {/* Nombre */}
-                <Form.Group className="mb-3" controlId="nombreCompleto">
+                <Form.Group className="mb-3">
                   <Form.Label>Nombre completo</Form.Label>
                   <Form.Control
                     type="text"
+                    name="nombreCompleto"
                     value={formData.nombreCompleto}
                     onChange={handleChange}
-                    isInvalid={!!errors.nombreCompleto}
+                    onBlur={handleBlur}
+                    isInvalid={touched.nombreCompleto && !!errors.nombreCompleto}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.nombreCompleto}
@@ -137,13 +173,15 @@ export default function RegistrarUsuario() {
                 </Form.Group>
 
                 {/* Correo */}
-                <Form.Group className="mb-3" controlId="correo">
+                <Form.Group className="mb-3">
                   <Form.Label>Correo</Form.Label>
                   <Form.Control
                     type="email"
+                    name="correo"
                     value={formData.correo}
                     onChange={handleChange}
-                    isInvalid={!!errors.correo}
+                    onBlur={handleBlur}
+                    isInvalid={touched.correo && !!errors.correo}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.correo}
@@ -151,13 +189,15 @@ export default function RegistrarUsuario() {
                 </Form.Group>
 
                 {/* Confirmar correo */}
-                <Form.Group className="mb-3" controlId="verificarCorreo">
+                <Form.Group className="mb-3">
                   <Form.Label>Confirmar correo</Form.Label>
                   <Form.Control
                     type="email"
+                    name="verificarCorreo"
                     value={formData.verificarCorreo}
                     onChange={handleChange}
-                    isInvalid={!!errors.verificarCorreo}
+                    onBlur={handleBlur}
+                    isInvalid={touched.verificarCorreo && !!errors.verificarCorreo}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.verificarCorreo}
@@ -165,14 +205,16 @@ export default function RegistrarUsuario() {
                 </Form.Group>
 
                 {/* Password */}
-                <Form.Group className="mb-3" controlId="password">
+                <Form.Group className="mb-3">
                   <Form.Label>Contraseña</Form.Label>
                   <InputGroup>
                     <Form.Control
                       type={showPassword ? "text" : "password"}
+                      name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      isInvalid={!!errors.password}
+                      onBlur={handleBlur}
+                      isInvalid={touched.password && !!errors.password}
                     />
                     <Button
                       variant="outline-secondary"
@@ -188,14 +230,16 @@ export default function RegistrarUsuario() {
                 </Form.Group>
 
                 {/* Confirmar password */}
-                <Form.Group className="mb-3" controlId="verificarPassword">
+                <Form.Group className="mb-3">
                   <Form.Label>Confirmar contraseña</Form.Label>
                   <InputGroup>
                     <Form.Control
                       type={showPassword2 ? "text" : "password"}
+                      name="verificarPassword"
                       value={formData.verificarPassword}
                       onChange={handleChange}
-                      isInvalid={!!errors.verificarPassword}
+                      onBlur={handleBlur}
+                      isInvalid={touched.verificarPassword && !!errors.verificarPassword}
                     />
                     <Button
                       variant="outline-secondary"
@@ -211,13 +255,15 @@ export default function RegistrarUsuario() {
                 </Form.Group>
 
                 {/* Teléfono */}
-                <Form.Group className="mb-3" controlId="telefono">
+                <Form.Group className="mb-3">
                   <Form.Label>Teléfono (opcional)</Form.Label>
                   <Form.Control
                     type="tel"
+                    name="telefono"
                     value={formData.telefono}
                     onChange={handleChange}
-                    isInvalid={!!errors.telefono}
+                    onBlur={handleBlur}
+                    isInvalid={touched.telefono && !!errors.telefono}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.telefono}
@@ -229,10 +275,11 @@ export default function RegistrarUsuario() {
                   <Col md={12}>
                     <Form.Label>Región</Form.Label>
                     <Form.Select
-                      id="region"
+                      name="region"
                       value={formData.region}
                       onChange={handleChange}
-                      isInvalid={!!errors.region}
+                      onBlur={handleBlur}
+                      isInvalid={touched.region && !!errors.region}
                     >
                       <option value="">Selecciona tu región</option>
                       <option value="rm">Región Metropolitana</option>
@@ -246,10 +293,11 @@ export default function RegistrarUsuario() {
                   <Col md={12}>
                     <Form.Label>Comuna</Form.Label>
                     <Form.Select
-                      id="comuna"
+                      name="comuna"
                       value={formData.comuna}
                       onChange={handleChange}
-                      isInvalid={!!errors.comuna}
+                      onBlur={handleBlur}
+                      isInvalid={touched.comuna && !!errors.comuna}
                     >
                       <option value="">Seleccione la comuna</option>
                       <option value="linares">Linares</option>
@@ -263,14 +311,14 @@ export default function RegistrarUsuario() {
                 </Row>
 
                 {/* Términos */}
-                <Form.Group className="mb-3 mt-3" controlId="terminos">
+                <Form.Group className="mb-3 mt-3">
                   <Form.Check
                     type="checkbox"
                     label="Acepto los términos y condiciones"
-                    required
+                    name="terminos"
                     checked={formData.terminos}
                     onChange={handleChange}
-                    isInvalid={!!errors.terminos}
+                    isInvalid={touched.terminos && !!errors.terminos}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.terminos}
@@ -279,8 +327,13 @@ export default function RegistrarUsuario() {
 
                 {/* Botón de registro */}
                 <div className="text-center mt-4">
-                  <Button type="submit" variant="primary" className="btn-final">
-                    Registrar
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="btn-final"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Registrando..." : "Registrar"}
                   </Button>
                 </div>
               </Form>

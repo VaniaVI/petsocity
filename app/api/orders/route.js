@@ -1,18 +1,25 @@
-export async function POST(req) {
+// app/api/orders/route.js
+import { NextResponse } from "next/server";
+
+let orders = [];
+let nextId = 1;
+
+export async function POST(request) {
   try {
-    const body = await req.json();
-    const { items, buyer } = body || {};
+    const body = await request.json();
+    
+    const newOrder = {
+      orderId: String(nextId++),
+      ...body,
+      createdAt: new Date().toISOString(),
+    };
 
-    if (!Array.isArray(items) || !items.length) {
-      return new Response(JSON.stringify({ error: 'Carrito vacío' }), { status: 400 });
-    }
-    if (!buyer?.nombre || !buyer?.email) {
-      return new Response(JSON.stringify({ error: 'Datos de comprador incompletos' }), { status: 400 });
-    }
+    orders.push(newOrder);
 
-    const orderId = 'ORD-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-    return new Response(JSON.stringify({ ok: true, orderId }), { status: 201 });
-  } catch {
-    return new Response(JSON.stringify({ error: 'Error procesando la orden' }), { status: 500 });
+    // ✅ IMPORTANTE: Retornar el orderId
+    return NextResponse.json({ orderId: newOrder.orderId }, { status: 201 });
+  } catch (error) {
+    console.error("Error:", error);
+    return NextResponse.json({ error: "Error al crear orden" }, { status: 500 });
   }
 }
