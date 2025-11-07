@@ -1,15 +1,27 @@
+// app/compraExitosa/page.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container, Row, Col, Card, Table, Button, Spinner } from "react-bootstrap";
-import { CheckCircleFill } from "react-bootstrap-icons";
 import { fmtCLP } from "@/lib/formatters";
+import { getOrderById } from "@/lib/services/orderService";
+import { HeaderCompra } from "@/components/HeaderCompra";
 
 export default function CompraExitosaPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
   const [orderData, setOrderData] = useState(null);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellidos: "",
+    correo: "",
+    calle: "",
+    departamento: "",
+    region: "",
+    comuna: "",
+    indicaciones: "",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,29 +32,33 @@ export default function CompraExitosaPage() {
       return;
     }
 
-    // Obtener datos de la orden
-    const fetchOrder = async () => {
-      try {
-        const res = await fetch(`/api/orders/${orderId}`);
-        
-        if (!res.ok) {
-          throw new Error("No se pudo obtener la información de la orden");
-        }
+    // Obtener la orden desde el servicio o localStorage
+    const orden = getOrderById(orderId) || JSON.parse(localStorage.getItem("ultimaOrden"));
 
-        const data = await res.json();
-        setOrderData(data);
-      } catch (err) {
-        console.error("Error al obtener orden:", err);
-        setError("No se pudo cargar la información de tu compra");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!orden) {
+      setError("No se pudo cargar la información de tu compra");
+      setLoading(false);
+      return;
+    }
 
-    fetchOrder();
+    setOrderData(orden);
+
+    // Rellenar campos con datos de checkout almacenados en localStorage
+    const checkoutData = JSON.parse(localStorage.getItem("checkoutData"));
+    setFormData({
+      nombre: checkoutData?.nombre || orden.nombre || "",
+      apellidos: checkoutData?.apellidos || orden.apellidos || "",
+      correo: checkoutData?.correo || orden.correo || "",
+      calle: checkoutData?.calle || orden.direccion?.calle || "",
+      departamento: checkoutData?.departamento || orden.direccion?.departamento || "",
+      region: checkoutData?.region || orden.direccion?.region || "",
+      comuna: checkoutData?.comuna || orden.direccion?.comuna || "",
+      indicaciones: checkoutData?.indicaciones || orden.direccion?.indicaciones || "",
+    });
+
+    setLoading(false);
   }, [orderId]);
 
-  // Loading state
   if (loading) {
     return (
       <Container className="py-5 text-center">
@@ -52,7 +68,6 @@ export default function CompraExitosaPage() {
     );
   }
 
-  // Error state
   if (error || !orderData) {
     return (
       <Container className="py-5">
@@ -60,33 +75,18 @@ export default function CompraExitosaPage() {
           <Card.Body>
             <h3 className="text-danger mb-3">Error</h3>
             <p>{error || "No se encontró la orden"}</p>
-            <Button variant="primary" href="/products">
-              Volver a productos
-            </Button>
+            <Button variant="primary" href="/products">Volver a productos</Button>
           </Card.Body>
         </Card>
       </Container>
     );
   }
 
-  // Success state
   return (
     <Container className="py-4">
       <Row className="justify-content-center">
         <Col lg={10}>
-          {/* Header de éxito */}
-          <Card className="border-success mb-4">
-            <Card.Body className="text-center py-5">
-              <CheckCircleFill className="text-success mb-3" size={60} />
-              <h1 className="mb-2">Se ha realizado la compra. nro #{orderId}</h1>
-              <p className="text-muted mb-0">
-                Código orden: <strong>ORDER{orderId}</strong>
-              </p>
-              <p className="text-muted small">
-                Completa la siguiente información
-              </p>
-            </Card.Body>
-          </Card>
+          <HeaderCompra exito={!!orderData && !error} orderId={orderId} />
 
           <Row>
             {/* Información del cliente */}
@@ -98,30 +98,15 @@ export default function CompraExitosaPage() {
                 <Card.Body>
                   <div className="mb-3">
                     <label className="text-muted small">Nombre*</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={orderData.buyer.nombre}
-                      readOnly
-                    />
+                    <input type="text" className="form-control" value={formData.nombre} readOnly />
                   </div>
                   <div className="mb-3">
                     <label className="text-muted small">Apellidos*</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={orderData.buyer.apellidos}
-                      readOnly
-                    />
+                    <input type="text" className="form-control" value={formData.apellidos} readOnly />
                   </div>
                   <div>
                     <label className="text-muted small">Correo*</label>
-                    <input 
-                      type="email" 
-                      className="form-control" 
-                      value={orderData.buyer.correo}
-                      readOnly
-                    />
+                    <input type="email" className="form-control" value={formData.correo} readOnly />
                   </div>
                 </Card.Body>
               </Card>
@@ -131,69 +116,49 @@ export default function CompraExitosaPage() {
             <Col md={6} className="mb-4">
               <Card>
                 <Card.Header className="bg-light">
-                  <h5 className="mb-0">Dirección de entrega de los productos</h5>
+                  <h5 className="mb-0">Dirección de entrega</h5>
                 </Card.Header>
                 <Card.Body>
-                  {orderData.shipping.metodo === "domicilio" ? (
+                  {orderData.metodo === "domicilio" ? (
                     <>
                       <div className="mb-3">
                         <label className="text-muted small">Calle*</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          value={orderData.shipping.direccion.calle}
-                          readOnly
-                        />
+                        <input type="text" className="form-control" value={formData.calle} readOnly />
                       </div>
-                      <Row className="mb-3">
-                        <Col md={8}>
-                          <label className="text-muted small">Departamento (opcional)</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            value={orderData.shipping.direccion.departamento || ""}
-                            readOnly
-                          />
-                        </Col>
-                      </Row>
-                      <Row className="mb-3">
-                        <Col md={6}>
-                          <label className="text-muted small">Región*</label>
-                          <select className="form-select" disabled>
-                            <option>{orderData.shipping.direccion.region}</option>
-                          </select>
-                        </Col>
-                        <Col md={6}>
-                          <label className="text-muted small">Comuna*</label>
-                          <select className="form-select" disabled>
-                            <option>{orderData.shipping.direccion.comuna}</option>
-                          </select>
-                        </Col>
-                      </Row>
-                      {orderData.shipping.direccion.indicaciones && (
+                      <div className="mb-3">
+                        <label className="text-muted small">Departamento (opcional)</label>
+                        <input type="text" className="form-control" value={formData.departamento} readOnly />
+                      </div>
+                      <div className="mb-3">
+                        <label className="text-muted small">Región*</label>
+                        <select className="form-select" disabled>
+                          <option>{formData.region}</option>
+                        </select>
+                      </div>
+                      <div className="mb-3">
+                        <label className="text-muted small">Comuna*</label>
+                        <select className="form-select" disabled>
+                          <option>{formData.comuna}</option>
+                        </select>
+                      </div>
+                      {formData.indicaciones && (
                         <div>
-                          <label className="text-muted small">Indicaciones para la entrega (opcional)</label>
-                          <textarea 
-                            className="form-control" 
-                            rows={3}
-                            value={orderData.shipping.direccion.indicaciones}
-                            readOnly
-                          />
+                          <label className="text-muted small">Indicaciones (opcional)</label>
+                          <textarea className="form-control" rows={3} value={formData.indicaciones} readOnly />
                         </div>
                       )}
                     </>
                   ) : (
                     <div className="alert alert-info">
                       <strong>Retiro en tienda</strong>
-                      <p className="mb-0 mt-2 small">
-                        Puedes retirar tu pedido en nuestras tiendas.
-                      </p>
+                      <p className="mb-0 mt-2 small">Puedes retirar tu pedido en nuestras tiendas.</p>
                     </div>
                   )}
                 </Card.Body>
               </Card>
             </Col>
           </Row>
+
 
           {/* Tabla de productos */}
           <Card className="mb-4">
@@ -215,18 +180,24 @@ export default function CompraExitosaPage() {
                   <tbody>
                     {orderData.items.map((item, index) => (
                       <tr key={index}>
-                        <td style={{ width: "80px" }}>
-                          <div 
-                            className="bg-secondary rounded"
-                            style={{ width: "60px", height: "60px" }}
-                          />
+                        <td className="d-flex gap-3 flex-grow-1">
+                          {item.imagen && (
+                        <img
+                          src={item.imagen}
+                          alt={item.nombre}
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                          }}
+                        />
+                      )}
                         </td>
                         <td>{item.nombre}</td>
                         <td>{fmtCLP(item.precio)}</td>
                         <td className="text-center">{item.quantity}</td>
-                        <td className="text-end">
-                          {fmtCLP(item.precio * item.quantity)}
-                        </td>
+                        <td className="text-end">{fmtCLP(item.precio * item.quantity)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -235,7 +206,7 @@ export default function CompraExitosaPage() {
             </Card.Body>
           </Card>
 
-          {/* Total */}
+          {/* Totales */}
           <Card className="mb-4">
             <Card.Body>
               <div className="d-flex justify-content-end">
@@ -246,19 +217,12 @@ export default function CompraExitosaPage() {
                   </div>
                   <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">Envío:</span>
-                    <span>
-                      {orderData.totales.envio === 0 
-                        ? "Gratis" 
-                        : fmtCLP(orderData.totales.envio)
-                      }
-                    </span>
+                    <span>{orderData.totales.envio === 0 ? "Gratis" : fmtCLP(orderData.totales.envio)}</span>
                   </div>
                   <hr />
                   <div className="d-flex justify-content-between">
                     <strong>Total pagado:</strong>
-                    <strong className="text-success fs-4">
-                      {fmtCLP(orderData.totales.total)}
-                    </strong>
+                    <strong className="text-success fs-4">{fmtCLP(orderData.totales.total)}</strong>
                   </div>
                 </div>
               </div>
@@ -267,30 +231,17 @@ export default function CompraExitosaPage() {
 
           {/* Botones de acción */}
           <div className="d-flex gap-2 justify-content-center mb-4">
-            <Button 
-              variant="danger" 
-              onClick={() => window.print()}
-            >
+            <Button variant="danger" onClick={() => window.print()}>
               Imprimir boleta en PDF
             </Button>
-            <Button 
-              variant="success"
-              onClick={() => {
-                // Simular envío por email
-                alert("Boleta enviada al correo: " + orderData.buyer.correo);
-              }}
-            >
+            <Button variant="success" onClick={() => alert("Boleta enviada al correo: " + formData.correo)}>
               Enviar boleta por email
             </Button>
           </div>
 
           {/* Botón volver */}
           <div className="text-center">
-            <Button 
-              variant="primary" 
-              href="/products"
-              size="lg"
-            >
+            <Button variant="primary" href="/products" size="lg">
               Volver a productos
             </Button>
           </div>

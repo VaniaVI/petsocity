@@ -79,7 +79,8 @@ export function useCart(initialMetodo = "retiro") {
 
   const clearCart = useCallback(() => {
     cartService.clearCart();
-  }, []);
+    refresh();
+  }, [refresh]);
 
   return {
     // Estado

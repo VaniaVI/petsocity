@@ -19,6 +19,7 @@ export default function RegistrarUsuario() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
 
+
   // ✅ Reglas de validación centralizadas
   const validationRules = (data, fieldName, fieldValue) => {
     const errors = {};
@@ -134,6 +135,11 @@ export default function RegistrarUsuario() {
       };
 
       await crearCliente(clienteData);
+
+      // ✅ Guarda el correo para autocompletar el checkout
+      if (typeof window !== "undefined") {
+        localStorage.setItem("clienteCorreo", formData.correo);
+      }
 
       alert("Registro exitoso ✅");
       console.log("Se guarda cliente" , JSON.stringify(clienteData, null, 2));
