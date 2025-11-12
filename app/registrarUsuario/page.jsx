@@ -3,78 +3,12 @@
 import { useState } from "react";
 import { Row, Col, Form, Button, Container, Card, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import {
-  validateNombre,
-  validateCorreo,
-  validateMatch,
-  validatePassword,
-  validateTelefono,
-  validateSelect,
-  validateTerminos,
-} from "@/lib/validators";
+import { registroValidationRules , useFormValidation } from "@/hooks/useFormValidation";
 import { crearCliente } from "@/lib/services/clientService";
 
 export default function RegistrarUsuario() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
-
-
-  // ✅ Reglas de validación centralizadas
-  const validationRules = (data, fieldName, fieldValue) => {
-    const errors = {};
-    const value = fieldValue !== undefined ? fieldValue : data[fieldName];
-
-    // Si se está validando un campo específico
-    if (fieldName) {
-      switch (fieldName) {
-        case "nombreCompleto":
-          errors.nombreCompleto = validateNombre(value);
-          break;
-        case "correo":
-          errors.correo = validateCorreo(value, "duoc.cl");
-          break;
-        case "verificarCorreo":
-          errors.verificarCorreo = validateMatch(data.correo, value, "Los correos");
-          break;
-        case "password":
-          errors.password = validatePassword(value);
-          break;
-        case "verificarPassword":
-          errors.verificarPassword = validateMatch(data.password, value, "Las contraseñas");
-          break;
-        case "telefono":
-          errors.telefono = validateTelefono(value, false);
-          break;
-        case "region":
-          errors.region = validateSelect(value, "La región");
-          break;
-        case "comuna":
-          errors.comuna = validateSelect(value, "La comuna");
-          break;
-        case "terminos":
-          errors.terminos = validateTerminos(value);
-          break;
-      }
-      return errors;
-    }
-
-    // Validar todo el formulario
-    errors.nombreCompleto = validateNombre(data.nombreCompleto);
-    errors.correo = validateCorreo(data.correo, "duoc.cl");
-    errors.verificarCorreo = validateMatch(data.correo, data.verificarCorreo, "Los correos");
-    errors.password = validatePassword(data.password);
-    errors.verificarPassword = validateMatch(data.password, data.verificarPassword, "Las contraseñas");
-    errors.telefono = validateTelefono(data.telefono, false);
-    errors.region = validateSelect(data.region, "La región");
-    errors.comuna = validateSelect(data.comuna, "La comuna");
-    errors.terminos = validateTerminos(data.terminos);
-
-    // Filtrar errores vacíos
-    return Object.fromEntries(
-      Object.entries(errors).filter(([_, v]) => v !== "")
-    );
-  };
 
   // ✅ Hook de validación
   const {
@@ -100,29 +34,29 @@ export default function RegistrarUsuario() {
       comuna: "",
       terminos: false,
     },
-    validationRules
+    registroValidationRules 
   );
 
   // ✅ Manejo del submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    touchAllFields();
+    touchAllFields(); // Marca todos los campos como 'tocados' para forzar la visualización del rojo
 
     if (!validateForm()) {
-      alert("Por favor corrige los errores en el formulario");
-      return;
+      // 🚨 CORRECCIÓN: Si la validación falla, simplemente detenemos la función.
+      // Los errores se muestran automáticamente en el formulario.
+      return; 
     }
 
     setIsSubmitting(true);
 
     try {
-      // Separar nombre y apellidos (simplificado)
+      // Lógica de negocio (Crear cliente)
       const nombreCompleto = formData.nombreCompleto.trim();
       const partes = nombreCompleto.split(" ");
       const nombre = partes[0];
       const apellidos = partes.slice(1).join(" ") || nombre;
 
-      // Crear cliente
       const clienteData = {
         nombre,
         apellidos,
@@ -134,20 +68,20 @@ export default function RegistrarUsuario() {
         },
       };
 
-      await crearCliente(clienteData);
+      await crearCliente(clienteData); 
 
-      // ✅ Guarda el correo para autocompletar el checkout
+      // Guarda el correo para autocompletar el checkout
       if (typeof window !== "undefined") {
         localStorage.setItem("clienteCorreo", formData.correo);
       }
 
-      alert("Registro exitoso ✅");
+      alert("Registro exitoso ✅"); 
       console.log("Se guarda cliente" , JSON.stringify(clienteData, null, 2));
       resetForm();
 
     } catch (error) {
       console.error("Error en registro:", error);
-      alert("Hubo un problema al registrar el usuario. Intenta nuevamente.");
+      alert("Hubo un problema al registrar el usuario. Intenta nuevamente. Error: " + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -213,7 +147,8 @@ export default function RegistrarUsuario() {
                 {/* Password */}
                 <Form.Group className="mb-3">
                   <Form.Label>Contraseña</Form.Label>
-                  <InputGroup>
+                  {/* hasValidation necesario para tooltips en InputGroup */}
+                  <InputGroup hasValidation>
                     <Form.Control
                       type={showPassword ? "text" : "password"}
                       name="password"
@@ -229,7 +164,7 @@ export default function RegistrarUsuario() {
                     >
                       {showPassword ? <EyeSlash /> : <Eye />}
                     </Button>
-                    <Form.Control.Feedback type="invalid">
+                    <Form.Control.Feedback type="invalid" tooltip>
                       {errors.password}
                     </Form.Control.Feedback>
                   </InputGroup>
@@ -238,7 +173,7 @@ export default function RegistrarUsuario() {
                 {/* Confirmar password */}
                 <Form.Group className="mb-3">
                   <Form.Label>Confirmar contraseña</Form.Label>
-                  <InputGroup>
+                  <InputGroup hasValidation>
                     <Form.Control
                       type={showPassword2 ? "text" : "password"}
                       name="verificarPassword"
@@ -254,7 +189,7 @@ export default function RegistrarUsuario() {
                     >
                       {showPassword2 ? <EyeSlash /> : <Eye />}
                     </Button>
-                    <Form.Control.Feedback type="invalid">
+                    <Form.Control.Feedback type="invalid" tooltip>
                       {errors.verificarPassword}
                     </Form.Control.Feedback>
                   </InputGroup>
@@ -278,7 +213,7 @@ export default function RegistrarUsuario() {
 
                 {/* Región y comuna */}
                 <Row className="g-3">
-                  <Col md={12}>
+                  <Col md={12} className="mb-3">
                     <Form.Label>Región</Form.Label>
                     <Form.Select
                       name="region"
