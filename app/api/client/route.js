@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { clientes, nextId } from "@/data/client";
+import { clientes} from "@/data/client";
+import { getNewId } from "../../../data/client";
 
 /**
  * GET /api/clientes
@@ -32,7 +33,7 @@ export async function POST(request) {
   }
 
   const nuevoCliente = {
-    id: nextId++,
+    id: getNewId(),
     nombre: body.nombre,
     apellidos: body.apellidos || "",
     correo: body.correo,
