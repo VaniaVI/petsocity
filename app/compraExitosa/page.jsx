@@ -1,13 +1,16 @@
-// app/compraExitosa/page.jsx
 "use client";
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container, Row, Col, Card, Table, Button, Spinner } from "react-bootstrap";
 import { fmtCLP } from "@/lib/formatters";
 import { getOrderById } from "@/lib/services/orderService";
 import { HeaderCompra } from "@/components/HeaderCompra";
 
-export default function CompraExitosaPage() {
+/* 
+  ✅ Envolvemos el contenido en un componente separado
+  para poder usar <Suspense> correctamente sin error
+*/
+function CompraExitosaContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -159,7 +162,6 @@ export default function CompraExitosaPage() {
             </Col>
           </Row>
 
-
           {/* Tabla de productos */}
           <Card className="mb-4">
             <Card.Header className="bg-light">
@@ -182,17 +184,17 @@ export default function CompraExitosaPage() {
                       <tr key={index}>
                         <td className="d-flex gap-3 flex-grow-1">
                           {item.imagen && (
-                        <img
-                          src={item.imagen}
-                          alt={item.nombre}
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                          }}
-                        />
-                      )}
+                            <img
+                              src={item.imagen}
+                              alt={item.nombre}
+                              style={{
+                                width: "60px",
+                                height: "60px",
+                                objectFit: "cover",
+                                borderRadius: "8px",
+                              }}
+                            />
+                          )}
                         </td>
                         <td>{item.nombre}</td>
                         <td>{fmtCLP(item.precio)}</td>
@@ -248,5 +250,22 @@ export default function CompraExitosaPage() {
         </Col>
       </Row>
     </Container>
+  );
+}
+
+/* 
+
+  Aquí usamos <Suspense> para envolver el contenido.
+*/
+export default function CompraExitosaPage() {
+  return (
+    <Suspense fallback={
+      <Container className="py-5 text-center">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-3">Cargando información de tu compra...</p>
+      </Container>
+    }>
+      <CompraExitosaContent />
+    </Suspense>
   );
 }
