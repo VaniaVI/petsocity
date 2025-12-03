@@ -2,6 +2,8 @@
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useState } from 'react';
 import Link from 'next/link';
+import { setClienteNombre, setClienteCorreo, setClienteId } from '@/lib/services/clientService';
+
 
 export default function LoginModal({ show, handleClose, onLoginSuccess }) {
   const [email, setEmail] = useState('');
