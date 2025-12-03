@@ -1,10 +1,12 @@
 // app/registroUsuario/page.jsx
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Row, Col, Form, Button, Container, Card, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { registroValidationRules , useFormValidation } from "@/hooks/useFormValidation";
-import { setClienteId, setClienteCorreo } from "@/lib/services/clientService";
+import { setClienteId, setClienteCorreo, setClienteNombre } from "@/lib/services/clientService";
+
 
 export default function RegistrarUsuario() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +14,8 @@ export default function RegistrarUsuario() {
   const [regiones, setRegiones] = useState([]);
   const [comunas, setComunas] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState("");
+  const router = useRouter();
+
 
 
   // Hook de validación
@@ -77,10 +81,12 @@ export default function RegistrarUsuario() {
       body: JSON.stringify(clienteData), // <-- enviamos clienteData
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Error al registrar usuario");
-    }
+if (!res.ok) {
+  const errorData = await res.json();
+  console.log("Error del backend:", errorData); // <- esto te mostrará todo
+  throw new Error(errorData.message || errorData.mensaje || "Error al registrar usuario");
+}
+
 
     const usuarioCreado = await res.json();
 
@@ -91,6 +97,8 @@ export default function RegistrarUsuario() {
 
     alert("Registro exitoso ✅");
     resetForm();
+    if (onLoginSuccess) onLoginSuccess();
+    router.push("/");
   } catch (error) {
     console.error("Error en registro:", error);
     alert("Hubo un problema al registrar el usuario. Intenta nuevamente. Error: " + error.message);
@@ -328,8 +336,7 @@ export default function RegistrarUsuario() {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Registrando..." : "Registrar"}
-                    console.log(clienteData);
-
+                    
                   </Button>
                 </div>
               </Form>
