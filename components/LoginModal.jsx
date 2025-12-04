@@ -1,13 +1,15 @@
 'use client';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, InputGroup } from 'react-bootstrap';
 import { useState } from 'react';
 import Link from 'next/link';
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { setClienteNombre, setClienteCorreo, setClienteId } from '@/lib/services/clientService';
 
 
 export default function LoginModal({ show, handleClose, onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [contrasenia, setContrasenia] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
   const [variant, setVariant] = useState('success');
@@ -91,17 +93,32 @@ export default function LoginModal({ show, handleClose, onLoginSuccess }) {
             <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formContrasenia">
-            <Form.Label>Contraseña</Form.Label>
-            <Form.Control
-              type="password"
-              placeholder="Contraseña"
-              value={contrasenia}
-              onChange={(e) => setContrasenia(e.target.value)}
-              isInvalid={!!errors.contrasenia}
-            />
-            <Form.Control.Feedback type="invalid">{errors.contrasenia}</Form.Control.Feedback>
-          </Form.Group>
+        <Form.Group className="mb-3" controlId="formContrasenia">
+  <Form.Label>Contraseña</Form.Label>
+
+  <InputGroup>
+    <Form.Control
+      type={showPassword ? "text" : "password"}
+      placeholder="Contraseña"
+      value={contrasenia}
+      onChange={(e) => setContrasenia(e.target.value)}
+      isInvalid={!!errors.contrasenia}
+    />
+
+    <Button
+      variant="outline-secondary"
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? <EyeSlash /> : <Eye />}
+    </Button>
+  </InputGroup>
+
+  <Form.Control.Feedback type="invalid">
+    {errors.contrasenia}
+  </Form.Control.Feedback>
+</Form.Group>
+
 
           <Button variant="primary" type="submit" className="w-100" disabled={isSubmitting}>
             {isSubmitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
