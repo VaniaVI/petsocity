@@ -97,7 +97,6 @@ if (!res.ok) {
 
     alert("Registro exitoso ✅");
     resetForm();
-    if (onLoginSuccess) onLoginSuccess();
     router.push("/");
   } catch (error) {
     console.error("Error en registro:", error);
