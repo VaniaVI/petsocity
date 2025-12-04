@@ -75,7 +75,7 @@ export default function RegistrarUsuario() {
     };
 
     // Enviar datos al backend
-    const res = await fetch("http://localhost:8088/api/v1/usuarios", {
+    const res = await fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(clienteData), // <-- enviamos clienteData
@@ -108,7 +108,7 @@ if (!res.ok) {
 };
 
   useEffect(() => {
-    fetch("http://localhost:8088/api/v1/usuarios/regiones")
+    fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones")
       .then(res => res.json())
       .then(data => setRegiones(data))
       .catch(err => console.error(err));
@@ -117,7 +117,7 @@ if (!res.ok) {
   useEffect(() => {
     if (!selectedRegion) return;
 
-    fetch(`http://localhost:8088/api/v1/usuarios/regiones/${selectedRegion}/comunas`)
+    fetch(`https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${selectedRegion}/comunas`)
       .then(res => res.json())
       .then(data => setComunas(data))
       .catch(err => console.error(err));

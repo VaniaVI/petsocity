@@ -37,7 +37,7 @@ export default function LoginModal({ show, handleClose, onLoginSuccess }) {
     setMessage(null);
 
     try {
-      const response = await fetch('http://localhost:8088/api/v1/usuarios/login', {
+      const response = await fetch('https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, contrasenia })
