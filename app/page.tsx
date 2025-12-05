@@ -2,13 +2,72 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightCircle, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import { productos } from "../data/products";
-import { useRef } from "react";
+import { useRef, useEffect, useState} from "react";
+import { API_URL } from "@/lib/services/productsService";
+
+interface ApiCategoria {
+  nombre: string;
+}
+
+interface ApiProducto {
+  idProducto: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria?: ApiCategoria;
+}
+
+interface ProductoFront {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria: string;
+  imagen: string;
+  etiquetas: string[];
+}
+
+
+function mapApiProduct(apiProd: ApiProducto): ProductoFront {
+  return {
+    id: apiProd.idProducto,
+    nombre: apiProd.nombre,
+    descripcion: apiProd.descripcion,
+    precio: Number(apiProd.precio),
+    categoria: apiProd.categoria?.nombre ?? "",
+    imagen: `/productos/perro${apiProd.idProducto ?? 1}.png`,
+    etiquetas: [],
+  };
+}
 
 export default function Home() {
-  const trendingProducts = productos.filter((p) =>
-    p.etiquetas.includes("tendencia")
-  );
+  // ⬅️ ANTES: const trendingProducts = productos.filter(...)
+  // ⬅️ AHORA: vienen desde el microservicio
+  const [trendingProducts, setTrendingProducts] = useState<ProductoFront[]>([]);
+
+
+  // cargar productos desde el microservicio
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/productos`, {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("Error al cargar productos tendencia");
+
+        const data = await res.json();
+        const allProducts = data.map(mapApiProduct);
+
+        // Por ahora marcamos “tendencia” como: primeros 8 productos
+        setTrendingProducts(allProducts.slice(0, 8));
+      } catch (error) {
+        console.error("[HOME] Error cargando productos tendencia:", error);
+        setTrendingProducts([]);
+      }
+    };
+
+    fetchTrending();
+  }, []);
 
   // referencia al contenedor scrollable
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -16,7 +75,8 @@ export default function Home() {
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollAmount = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+      const scrollAmount =
+        direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
       scrollRef.current.scrollTo({ left: scrollAmount, behavior: "smooth" });
     }
   };
