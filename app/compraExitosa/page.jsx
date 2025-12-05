@@ -11,15 +11,46 @@ export default function CompraExitosaPage() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     async function fetchOrder() {
       if (!orderId) return;
 
       try {
-        const res = await fetch(`/api/orders?id=${orderId}`);
+        const res = await fetch(
+          `https://ordenes-production-ac23.up.railway.app/api/v1/orders/${orderId}`
+        );
+        console.log("orderId recibido:", orderId);
+        if (!res.ok) throw new Error("No se pudo obtener la orden");
+
         const data = await res.json();
-        setOrder(data);
+
+        // ✅ Parsear los campos TEXT que vienen como string
+        const parsedOrder = {
+          ...data,
+          customerData: JSON.parse(data.customerData),
+          cartItems: JSON.parse(data.cartItems),
+          totals: JSON.parse(data.totals)
+        };
+
+        const regionesRes = await fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones");
+        const regionesData = await regionesRes.json();
+
+
+        const comunasRes = await fetch(
+          `https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${parsedOrder.customerData.region}/comunas`
+        );
+        const comunasData = await comunasRes.json();
+
+        const regionNombre = regionesData.find(r => r.codigo === parsedOrder.customerData.region)?.nombre || "";
+        const comunaNombre = comunasData.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
+
+        // Guardamos los nombres en customerData
+        parsedOrder.customerData.regionNombre = regionNombre;
+        parsedOrder.customerData.comunaNombre = comunaNombre;
+
+        setOrder(parsedOrder);
       } catch (error) {
         console.error("Error cargando orden:", error);
       } finally {
@@ -29,6 +60,7 @@ export default function CompraExitosaPage() {
 
     fetchOrder();
   }, [orderId]);
+
 
   if (loading) {
     return (
@@ -47,21 +79,7 @@ export default function CompraExitosaPage() {
     );
   }
 
-  if (!order || !order.customerData) {
-  return (
-    <Container className="py-5">
-      <Card className="text-center border-danger">
-        <Card.Body>
-          <h3 className="text-danger mb-3">Error</h3>
-          <p>No se pudo cargar la información de la orden.</p>
-          <Button variant="primary" href="/products">Volver a productos</Button>
-        </Card.Body>
-      </Card>
-    </Container>
-  );
-}
-
-const { orderNumber, orderCode, customerData, deliveryMethod, cartItems, totals } = order;
+  const { orderNumber, orderCode, customerData, deliveryMethod, cartItems, totals } = order;
 
   return (
     <Container className="py-5">
@@ -85,7 +103,7 @@ const { orderNumber, orderCode, customerData, deliveryMethod, cartItems, totals 
             </Card.Header>
             <Card.Body>
               <p><strong>Nombre:</strong> {customerData.nombre}</p>
-              <p><strong>Apellidos:</strong> {customerData.apellidos}</p>
+              <p><strong>Apellido:</strong> {customerData.apellido}</p>
               <p><strong>Correo:</strong> {customerData.correo}</p>
             </Card.Body>
           </Card>
@@ -102,11 +120,11 @@ const { orderNumber, orderCode, customerData, deliveryMethod, cartItems, totals 
                 <p>Retiro en tienda. Puedes retirar tu pedido en nuestras tiendas.</p>
               ) : (
                 <>
-                  <p><strong>Calle:</strong> {customerData.direccion.calle}</p>
-                  <p><strong>Depto:</strong> {customerData.direccion.departamento}</p>
-                  <p><strong>Región:</strong> {customerData.direccion.region}</p>
-                  <p><strong>Comuna:</strong> {customerData.direccion.comuna}</p>
-                  <p><strong>Indicaciones:</strong> {customerData.direccion.indicaciones}</p>
+                  <p><strong>Calle:</strong> {customerData.calle}</p>
+                  <p><strong>Depto:</strong> {customerData.departamento}</p>
+                  <p><strong>Región:</strong> {customerData.regionNombre || "No especificado"}</p>
+                  <p><strong>Comuna:</strong> {customerData.comunaNombre || "No especificado"}</p>
+                  <p><strong>Indicaciones:</strong> {customerData.indicaciones}</p>
                 </>
               )}
             </Card.Body>
@@ -134,8 +152,8 @@ const { orderNumber, orderCode, customerData, deliveryMethod, cartItems, totals 
                 <tr key={i}>
                   <td>{item.nombre}</td>
                   <td>{fmtCLP(item.precio)}</td>
-                  <td>{item.cantidad}</td>
-                  <td>{fmtCLP(item.precio * item.cantidad)}</td>
+                  <td>{item.quantity}</td>
+                  <td>{fmtCLP(item.precio * item.quantity)}</td>
                 </tr>
               ))}
             </tbody>
