@@ -11,6 +11,7 @@ export default function CompraExitosaPage() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     async function fetchOrder() {
@@ -33,6 +34,22 @@ export default function CompraExitosaPage() {
           totals: JSON.parse(data.totals)
         };
 
+        const regionesRes = await fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones");
+        const regionesData = await regionesRes.json();
+
+
+        const comunasRes = await fetch(
+          `https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${parsedOrder.customerData.region}/comunas`
+        );
+        const comunasData = await comunasRes.json();
+
+        const regionNombre = regionesData.find(r => r.codigo === parsedOrder.customerData.region)?.nombre || "";
+        const comunaNombre = comunasData.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
+
+        // Guardamos los nombres en customerData
+        parsedOrder.customerData.regionNombre = regionNombre;
+        parsedOrder.customerData.comunaNombre = comunaNombre;
+
         setOrder(parsedOrder);
       } catch (error) {
         console.error("Error cargando orden:", error);
@@ -43,6 +60,7 @@ export default function CompraExitosaPage() {
 
     fetchOrder();
   }, [orderId]);
+
 
   if (loading) {
     return (
@@ -104,8 +122,8 @@ export default function CompraExitosaPage() {
                 <>
                   <p><strong>Calle:</strong> {customerData.calle}</p>
                   <p><strong>Depto:</strong> {customerData.departamento}</p>
-                  <p><strong>Región:</strong> {customerData.region}</p>
-                  <p><strong>Comuna:</strong> {customerData.comuna}</p>
+                  <p><strong>Región:</strong> {customerData.regionNombre || "No especificado"}</p>
+                  <p><strong>Comuna:</strong> {customerData.comunaNombre || "No especificado"}</p>
                   <p><strong>Indicaciones:</strong> {customerData.indicaciones}</p>
                 </>
               )}
