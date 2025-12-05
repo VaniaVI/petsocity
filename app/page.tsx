@@ -5,7 +5,30 @@ import { ArrowRightCircle, ChevronLeft, ChevronRight } from "react-bootstrap-ico
 import { useRef, useEffect, useState} from "react";
 import { API_URL } from "@/lib/services/productsService";
 
-function mapApiProduct(apiProd) {
+interface ApiCategoria {
+  nombre: string;
+}
+
+interface ApiProducto {
+  idProducto: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria?: ApiCategoria;
+}
+
+interface ProductoFront {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria: string;
+  imagen: string;
+  etiquetas: string[];
+}
+
+
+function mapApiProduct(apiProd: ApiProducto): ProductoFront {
   return {
     id: apiProd.idProducto,
     nombre: apiProd.nombre,
@@ -13,14 +36,15 @@ function mapApiProduct(apiProd) {
     precio: Number(apiProd.precio),
     categoria: apiProd.categoria?.nombre ?? "",
     imagen: `/productos/perro${apiProd.idProducto ?? 1}.png`,
-    etiquetas: [], // por ahora vacío
+    etiquetas: [],
   };
 }
 
 export default function Home() {
   // ⬅️ ANTES: const trendingProducts = productos.filter(...)
   // ⬅️ AHORA: vienen desde el microservicio
-  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [trendingProducts, setTrendingProducts] = useState<ProductoFront[]>([]);
+
 
   // cargar productos desde el microservicio
   useEffect(() => {
