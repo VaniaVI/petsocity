@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Alert, ListGroup, Badge } from "react-bootstrap";
 import CheckoutForm from "@/components/CheckoutForm";
-import { obtenerClientePorCorreo } from "@/lib/services/clientService";
+import { getClienteId } from "@/lib/services/clientService";
 import { procesarCheckout } from "@/lib/services/checkoutService";
 import { useCart } from "@/hooks/useCart";
 import { fmtCLP } from "@/lib/formatters";
@@ -19,17 +19,19 @@ export default function CheckoutPage() {
   // ============================================
   // ESTADO DEL FORMULARIO
   // ============================================
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellidos: "",
-    correo: "",
-    verificarCorreo: "",
-    calle: "",
-    departamento: "",
-    region: "",
-    comuna: "",
-    indicaciones: "",
-  });
+  // Inicializar formData
+const [formData, setFormData] = useState({
+  nombre: "",
+  apellido: "",
+  correo: "",
+  verificarCorreo: "",
+  calle: "",
+  departamento: "",
+  region: "",
+  comuna: "",
+  indicaciones: "",
+});
+
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -63,45 +65,59 @@ export default function CheckoutPage() {
   // ============================================
   // CARGAR DATOS DEL CLIENTE AL MONTAR
   // ============================================
-  useEffect(() => {
-    const cargarDatosCliente = () => {
-      try {
-        const emailGuardado = localStorage.getItem("clienteCorreo");
+useEffect(() => {
+  const cargarDatosCliente = async () => {
+    const idCliente = getClienteId();
+    if (!idCliente) {
+      setIsLoading(false);
+      return;
+    }
 
-        if (!emailGuardado) {
-          console.log("ℹ️ No hay cliente registrado previamente");
-          setIsLoading(false);
-          return;
-        }
-
-        const cliente = obtenerClientePorCorreo(emailGuardado);
-
-        if (cliente) {
-          console.log("✅ Cliente encontrado:", cliente);
-
-          setFormData({
-            nombre: cliente.nombre || "",
-            apellidos: cliente.apellidos || "",
-            correo: cliente.correo || "",
-            verificarCorreo: cliente.correo || "",
-            calle: cliente.direccion?.calle || "",
-            departamento: cliente.direccion?.departamento || "",
-            region: cliente.direccion?.region || "",
-            comuna: cliente.direccion?.comuna || "",
-            indicaciones: cliente.direccion?.indicaciones || "",
-          });
-        } else {
-          console.log("⚠️ Cliente no encontrado con ese correo");
-        }
-      } catch (error) {
-        console.error("❌ Error cargando datos del cliente:", error);
-      } finally {
-        setIsLoading(false);
+    try {
+      const res = await fetch(`https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/${idCliente}`);
+      
+      if (res.status === 404) {
+        setFormData({
+          nombre: "",
+          apellidos: "",
+          correo: "",
+          verificarCorreo: "",
+          calle: "",
+          departamento: "",
+          region: "",
+          comuna: "",
+          indicaciones: "",
+        });
+        return;
       }
-    };
 
-    cargarDatosCliente();
-  }, []);
+      if (!res.ok) throw new Error(`Error al cargar usuario: ${res.statusText}`);
+
+      const data = await res.json();
+
+      setFormData({
+        nombre: data.nombre || "",
+        apellidos: data.apellido || "",
+        correo: data.email || "",
+        verificarCorreo: data.email || "",
+        calle: data.direccion || "",
+        departamento: data.departamento || "",
+        region: data.region || "",
+        comuna: data.comuna || "",
+        indicaciones: data.indicaciones || "",
+      });
+
+    } catch (error) {
+      console.error("Error cargando usuario:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  cargarDatosCliente();
+}, []);
+
+
 
   // ============================================
   // FUNCIONES DE VALIDACIÓN
@@ -113,8 +129,10 @@ export default function CheckoutPage() {
     if (fieldName) {
       switch (fieldName) {
         case "nombre":
-        case "apellidos":
-          errors[fieldName] = validateNombre(value);
+          errors.nombre = validateNombre(value);
+          break;
+        case "apellido":
+          errors.apellido = validateNombre(value);
           break;
         case "correo":
           errors.correo = validateCorreo(value);
@@ -146,7 +164,7 @@ export default function CheckoutPage() {
 
     // Validar todo el formulario
     errors.nombre = validateNombre(data.nombre);
-    errors.apellidos = validateNombre(data.apellidos);
+    errors.apellido = validateNombre(data.apellido);
     errors.correo = validateCorreo(data.correo);
     errors.verificarCorreo = validateMatch(
       data.correo,
