@@ -11,7 +11,7 @@ export default function ProductCard({ product }) {
   const id = product.idProducto;
   const nombre = product.nombre;
   const precio = product.precio;
-  const imagen = product.imagenUrl ?? "/placeholder.jpg";
+  const imagen = product.imagen ?? "/placeholder.jpg";
 
   return (
     <Card style={{ width: "18rem" }} className="h-80">
