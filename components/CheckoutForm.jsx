@@ -185,7 +185,7 @@ useEffect(() => {
             <Form.Select
               name="region"
               value={formData.region}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
               onBlur={handleBlur}
               isInvalid={touched.region && !!errors.region}
               disabled={metodo === "retiro"}
@@ -206,7 +206,7 @@ useEffect(() => {
             <Form.Select
               name="comuna"
               value={formData.comuna}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, comuna: e.target.value })}
               onBlur={handleBlur}
               isInvalid={touched.comuna && !!errors.comuna}
               disabled={metodo === "retiro"}
