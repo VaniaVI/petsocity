@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "../../components/ProductCard";
 import { Suspense } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-producto-production.up.railway.app";
+import { API_URL } from "../../lib/services/productsService";
 
 function mapApiProduct(apiProd) {
     return {

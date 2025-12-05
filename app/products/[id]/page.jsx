@@ -6,8 +6,8 @@ import { Container , Row , Col , Button , Form , Breadcrumb , Card , Spinner , A
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart.js";
 import { fmtCLP } from "@/lib/formatters";
+import { API_URL } from "@/lib/services/productsService";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-producto-production.up.railway.app";
 
 // Adaptador: pasa del JSON del backend al formato que usa el front
 function mapApiProduct(apiProd) {
@@ -17,7 +17,7 @@ function mapApiProduct(apiProd) {
     descripcion: apiProd.descripcion,
     precio: Number(apiProd.precio),
     categoria: apiProd.categoria?.nombre ?? "",
-    imagen: `/productos/perro${id}.png`,
+    imagen: `/productos/perro${apiProd.idProducto ?? 1}.png`,
     etiquetas: [],
     // stock lo agregamos después (cuando llamemos al microservicio de inventario)
   };
@@ -340,7 +340,7 @@ export default function DetalleProducto() {
                       {fmtCLP(rel.precio)}
                     </Card.Text>
                     <div className="mt-auto">
-                      <Link href={`/products/${rel.id}`} passHref>
+                      <Link href={`/products/${rel.idProducto}`} passHref>
                         <Button variant="outline-primary" size="sm">
                           Ver detalle
                         </Button>

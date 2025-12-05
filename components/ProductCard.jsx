@@ -8,7 +8,7 @@ import { fmtCLP } from "@/lib/formatters.js";
 export default function ProductCard({ product }) {
 
   // Adaptación segura para datos del backend
-  const id = product.idProducto;
+  const id = product.idProducto ?? product.id;
   const nombre = product.nombre;
   const precio = product.precio;
   const imagen = product.imagen ?? "/placeholder.jpg";
