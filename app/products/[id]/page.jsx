@@ -7,8 +7,24 @@ import Link from "next/link";
 import { useCart } from "@/hooks/useCart.js";
 import { fmtCLP } from "@/lib/formatters";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Adaptador: pasa del JSON del backend al formato que usa el front
+function mapApiProduct(apiProd) {
+  return {
+    id: apiProd.idProducto,           
+    nombre: apiProd.nombre,
+    descripcion: apiProd.descripcion,
+    precio: Number(apiProd.precio),
+    categoria: apiProd.categoria?.nombre ?? "",
+    imagen: apiProd.imagenUrl ?? "",
+    etiquetas: [],
+    // stock lo agregamos después (cuando llamemos al microservicio de inventario)
+  };
+}
+
 export default function DetalleProducto() {
-  const { id } = useParams();
+  const { id } = useParams(); // viene como string desde la URL
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
   const [cantidad, setCantidad] = useState(1);
@@ -16,33 +32,67 @@ export default function DetalleProducto() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
-
-  // ✅ Obtener addItem y constants del hook useCart
+  // Obtener addItem y constants del hook useCart
   const { addItem, constants } = useCart();
 
-  // Cargar producto y relacionados
+  // Cargar producto, stock e relacionados
   useEffect(() => {
-    if (!id) return;
+    if (!id || !API_URL) return;
 
     const fetchProducto = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/products/${id}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Error al cargar producto");
-        const data = await res.json();
-        setProducto(data);
+        // 1) Obtener producto desde el microservicio
+        const res = await fetch(`${API_URL}/api/v1/productos/${id}`, {
+          cache: "no-store",
+        });
 
-        // ✅ Cargar productos relacionados por categoría
-        if (data.categoria) {
-          const resRel = await fetch(`/api/products?categoria=${data.categoria}`);
+        if (!res.ok) throw new Error("Error al cargar producto");
+        const apiProd = await res.json();
+
+        // Adaptamos el producto al formato del front
+        let mapped = mapApiProduct(apiProd);
+
+        // 2) Obtener stock desde el microservicio de inventario
+        try {
+          const resInv = await fetch(
+            `${API_URL}/api/v1/inventarios/producto/${id}`,
+            { cache: "no-store" }
+          );
+
+          if (resInv.ok) {
+            const inv = await resInv.json();
+            mapped = {
+              ...mapped,
+              stock: inv.stockActual, // ahora producto.stock existe
+            };
+          }
+        } catch (errorInv) {
+          console.error("Error cargando inventario:", errorInv);
+        }
+
+        setProducto(mapped);
+
+        // 3) Cargar productos relacionados por categoria 
+        const idCategoria = apiProd.categoria?.idCategoria;
+        if (idCategoria) {
+          const resRel = await fetch(
+            `${API_URL}/api/v1/productos/categoria/${idCategoria}`,
+            { cache: "no-store" }
+          );
           if (resRel.ok) {
-            const dataRel = await resRel.json();
-            // Filtrar el mismo producto y limitar a 3
-            setRelacionados(dataRel.filter((p) => p.id !== data.id).slice(0, 3));
+            const relApi = await resRel.json();
+            const relMapped = relApi
+              .map(mapApiProduct)
+              .filter((p) => p.id !== mapped.id) // no incluir el mismo
+              .slice(0, 3);
+
+            setRelacionados(relMapped);
           }
         }
       } catch (error) {
         console.error("Error cargando producto:", error);
+        setProducto(null);
       } finally {
         setLoading(false);
       }
@@ -54,7 +104,6 @@ export default function DetalleProducto() {
   // validación 
   const handleCantidadChange = (e) => {
     const val = Number(e.target.value);
-    // Validar rango
     if (val >= 1 && val <= constants.MAX_PER_ITEM) {
       setCantidad(val);
     } else if (val < 1) {
@@ -64,7 +113,6 @@ export default function DetalleProducto() {
     }
   };
 
-  // validacion
   const incrementarCantidad = () => {
     if (cantidad < constants.MAX_PER_ITEM) {
       setCantidad(cantidad + 1);
@@ -80,12 +128,14 @@ export default function DetalleProducto() {
   const handleAgregarCarrito = () => {
     if (!producto) return;
 
-    // Validar cantidad con los límites del servicio
-    const cant = Math.max(1, Math.min(constants.MAX_PER_ITEM, Number(cantidad) || 1));
+    const cant = Math.max(
+      1,
+      Math.min(constants.MAX_PER_ITEM, Number(cantidad) || 1)
+    );
 
     addItem(
       {
-        id: producto.id,
+        id: producto.id, // usamos el id ya adaptado
         nombre: producto.nombre,
         precio: Number(producto.precio) || 0,
         img: producto.imagen ?? null,
@@ -93,13 +143,9 @@ export default function DetalleProducto() {
       cant
     );
 
-    // Se guarda la cantidad en la siguietne variable para luego ser utilizada en el mensaje de exito
     setCantidadAgregada(cant);
-    // Mostrar mensaje de éxito
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
-
-    // Resetear cantidad a 1
     setCantidad(1);
   };
 
@@ -140,7 +186,8 @@ export default function DetalleProducto() {
         >
           <Alert.Heading>¡Producto agregado!</Alert.Heading>
           <p className="mb-0">
-            Se agregó {cantidadAgregada} {cantidadAgregada === 1 ? "unidad" : "unidades"} de{" "}
+            Se agregó {cantidadAgregada}{" "}
+            {cantidadAgregada === 1 ? "unidad" : "unidades"} de{" "}
             <strong>{producto.nombre}</strong> al carrito.
           </p>
         </Alert>
@@ -151,7 +198,7 @@ export default function DetalleProducto() {
         <Breadcrumb.Item linkAs={Link} href="/">
           Inicio
         </Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} href="/productos">
+        <Breadcrumb.Item linkAs={Link} href="/products">
           Productos
         </Breadcrumb.Item>
         {producto.categoria && (
@@ -178,7 +225,6 @@ export default function DetalleProducto() {
         <Col md={6}>
           <h1 className="h3 mb-3 fw-bold">{producto.nombre}</h1>
 
-          {/* Precio formateado con fmtCLP */}
           <div className="mb-3">
             <span className="h4 text-success fw-bold">
               {fmtCLP(producto.precio)}
@@ -190,15 +236,21 @@ export default function DetalleProducto() {
           )}
 
           {/* Stock disponible */}
-          {producto.stock && (
+          {typeof producto.stock === "number" && (
             <div className="mb-3">
-              <span className="badge bg-success">
-                ✓ Stock disponible: {producto.stock} unidades
-              </span>
+              {producto.stock > 0 ? (
+                <span className="badge bg-success">
+                  ✓ Stock disponible: {producto.stock} unidades
+                </span>
+              ) : (
+                <span className="badge bg-danger">
+                  ✕ Sin stock disponible
+                </span>
+              )}
             </div>
           )}
 
-          {/* Selector de cantidad CON BOTONES (Mejor UX) */}
+          {/* Selector de cantidad */}
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold">Cantidad:</Form.Label>
             <div className="d-flex align-items-center gap-2">
@@ -278,15 +330,17 @@ export default function DetalleProducto() {
                     style={{ height: "200px", objectFit: "cover" }}
                   />
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title className="text-truncate" title={rel.nombre}>
+                    <Card.Title
+                      className="text-truncate"
+                      title={rel.nombre}
+                    >
                       {rel.nombre}
                     </Card.Title>
-                    {/* Precio formateado */}
                     <Card.Text className="text-success fw-bold">
                       {fmtCLP(rel.precio)}
                     </Card.Text>
                     <div className="mt-auto">
-                      <Link href={`/products/${rel.id}`} passHref >
+                      <Link href={`/products/${rel.id}`} passHref>
                         <Button variant="outline-primary" size="sm">
                           Ver detalle
                         </Button>
