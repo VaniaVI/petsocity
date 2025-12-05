@@ -1,16 +1,24 @@
 // app/registroUsuario/page.jsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Row, Col, Form, Button, Container, Card, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { registroValidationRules , useFormValidation } from "@/hooks/useFormValidation";
-import { crearCliente } from "@/lib/services/clientService";
+import { setClienteId, setClienteCorreo, setClienteNombre } from "@/lib/services/clientService";
+
 
 export default function RegistrarUsuario() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
+  const [regiones, setRegiones] = useState([]);
+  const [comunas, setComunas] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const router = useRouter();
 
-  // ✅ Hook de validación
+
+
+  // Hook de validación
   const {
     formData,
     errors,
@@ -30,6 +38,7 @@ export default function RegistrarUsuario() {
       password: "",
       verificarPassword: "",
       telefono: "",
+      direccion: "", // <- nuevo campo
       region: "",
       comuna: "",
       terminos: false,
@@ -37,55 +46,83 @@ export default function RegistrarUsuario() {
     registroValidationRules 
   );
 
-  // ✅ Manejo del submit
+  // Manejo del submit
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    touchAllFields(); // Marca todos los campos como 'tocados' para forzar la visualización del rojo
+  e.preventDefault();
+  touchAllFields();
 
-    if (!validateForm()) {
-      // 🚨 CORRECCIÓN: Si la validación falla, simplemente detenemos la función.
-      // Los errores se muestran automáticamente en el formulario.
-      return; 
-    }
+  if (!validateForm()) return;
 
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    try {
-      // Lógica de negocio (Crear cliente)
-      const nombreCompleto = formData.nombreCompleto.trim();
-      const partes = nombreCompleto.split(" ");
-      const nombre = partes[0];
-      const apellidos = partes.slice(1).join(" ") || nombre;
+  try {
+    // Separar nombre y apellido
+    const nombreCompleto = formData.nombreCompleto.trim();
+    const partes = nombreCompleto.split(" ");
+    const nombre = partes[0];
+    const apellido = partes.slice(1).join(" ") || nombre;
 
-      const clienteData = {
-        nombre,
-        apellidos,
-        correo: formData.correo,
-        telefono: formData.telefono || null,
-        direccion: {
-          region: formData.region,
-          comuna: formData.comuna,
-        },
-      };
+    // Preparar datos para enviar al backend
+    const clienteData = {
+      nombre,
+      apellido,
+      email: formData.correo,
+      contrasenia: formData.password,
+      telefono: formData.telefono || "",
+      direccion: formData.direccion || "", 
+      region: formData.region,
+      comuna: formData.comuna,
+    };
 
-      await crearCliente(clienteData); 
+    // Enviar datos al backend
+    const res = await fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(clienteData), // <-- enviamos clienteData
+    });
 
-      // Guarda el correo para autocompletar el checkout
-      if (typeof window !== "undefined") {
-        localStorage.setItem("clienteCorreo", formData.correo);
-      }
+if (!res.ok) {
+  const errorData = await res.json();
+  console.log("Error del backend:", errorData); // <- esto te mostrará todo
+  throw new Error(errorData.message || errorData.mensaje || "Error al registrar usuario");
+}
 
-      alert("Registro exitoso ✅"); 
-      console.log("Se guarda cliente" , JSON.stringify(clienteData, null, 2));
-      resetForm();
 
-    } catch (error) {
-      console.error("Error en registro:", error);
-      alert("Hubo un problema al registrar el usuario. Intenta nuevamente. Error: " + error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const usuarioCreado = await res.json();
+
+    // Guardar ID y correo en frontend para otros microservicios
+    setClienteId(usuarioCreado.id);
+    setClienteCorreo(usuarioCreado.email);
+    setClienteNombre(usuarioCreado.nombre);
+
+    alert("Registro exitoso ✅");
+    resetForm();
+    router.push("/");
+  } catch (error) {
+    console.error("Error en registro:", error);
+    alert("Hubo un problema al registrar el usuario. Intenta nuevamente. Error: " + error.message);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  useEffect(() => {
+    fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones")
+      .then(res => res.json())
+      .then(data => setRegiones(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRegion) return;
+
+    fetch(`https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${selectedRegion}/comunas`)
+      .then(res => res.json())
+      .then(data => setComunas(data))
+      .catch(err => console.error(err));
+  }, [selectedRegion]);
+
+
 
   return (
     <Container className="pt-4">
@@ -96,7 +133,7 @@ export default function RegistrarUsuario() {
               <h1 className="text-center mb-4">Registro de usuario</h1>
 
               <Form noValidate onSubmit={handleSubmit}>
-                {/* Nombre */}
+                {/* Nombre completo */}
                 <Form.Group className="mb-3">
                   <Form.Label>Nombre completo</Form.Label>
                   <Form.Control
@@ -124,7 +161,7 @@ export default function RegistrarUsuario() {
                     isInvalid={touched.correo && !!errors.correo}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.correo}
+                    {errors.email}
                   </Form.Control.Feedback>
                 </Form.Group>
 
@@ -144,10 +181,9 @@ export default function RegistrarUsuario() {
                   </Form.Control.Feedback>
                 </Form.Group>
 
-                {/* Password */}
+                {/* Contraseña */}
                 <Form.Group className="mb-3">
                   <Form.Label>Contraseña</Form.Label>
-                  {/* hasValidation necesario para tooltips en InputGroup */}
                   <InputGroup hasValidation>
                     <Form.Control
                       type={showPassword ? "text" : "password"}
@@ -170,7 +206,7 @@ export default function RegistrarUsuario() {
                   </InputGroup>
                 </Form.Group>
 
-                {/* Confirmar password */}
+                {/* Confirmar contraseña */}
                 <Form.Group className="mb-3">
                   <Form.Label>Confirmar contraseña</Form.Label>
                   <InputGroup hasValidation>
@@ -211,6 +247,22 @@ export default function RegistrarUsuario() {
                   </Form.Control.Feedback>
                 </Form.Group>
 
+                {/* Dirección */}
+                <Form.Group className="mb-3">
+                  <Form.Label>Dirección (calle, número, referencia)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="direccion"
+                    value={formData.direccion}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    isInvalid={touched.direccion && !!errors.direccion}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.direccion}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
                 {/* Región y comuna */}
                 <Row className="g-3">
                   <Col md={12} className="mb-3">
@@ -218,19 +270,25 @@ export default function RegistrarUsuario() {
                     <Form.Select
                       name="region"
                       value={formData.region}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e); // actualiza formData.region
+                        setSelectedRegion(e.target.value); // actualiza el estado para cargar comunas
+                      }}
                       onBlur={handleBlur}
                       isInvalid={touched.region && !!errors.region}
                     >
                       <option value="">Selecciona tu región</option>
-                      <option value="rm">Región Metropolitana</option>
-                      <option value="araucania">Araucanía</option>
-                      <option value="nuble">Ñuble</option>
+                      {regiones.map((r) => (
+                        <option key={r.codigo} value={r.codigo}>
+                          {r.nombre}
+                        </option>
+                      ))}
                     </Form.Select>
                     <Form.Control.Feedback type="invalid">
                       {errors.region}
                     </Form.Control.Feedback>
                   </Col>
+                    
                   <Col md={12}>
                     <Form.Label>Comuna</Form.Label>
                     <Form.Select
@@ -241,9 +299,11 @@ export default function RegistrarUsuario() {
                       isInvalid={touched.comuna && !!errors.comuna}
                     >
                       <option value="">Seleccione la comuna</option>
-                      <option value="linares">Linares</option>
-                      <option value="longavi">Longaví</option>
-                      <option value="concepcion">Concepción</option>
+                      {comunas.map((c) => (
+                        <option key={c.codigo} value={c.codigo}>
+                          {c.nombre}
+                        </option>
+                      ))}
                     </Form.Select>
                     <Form.Control.Feedback type="invalid">
                       {errors.comuna}
@@ -275,6 +335,7 @@ export default function RegistrarUsuario() {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Registrando..." : "Registrar"}
+                    
                   </Button>
                 </div>
               </Form>

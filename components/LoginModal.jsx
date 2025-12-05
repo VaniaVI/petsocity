@@ -1,57 +1,75 @@
 'use client';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, InputGroup } from 'react-bootstrap';
 import { useState } from 'react';
 import Link from 'next/link';
+import { Eye, EyeSlash } from "react-bootstrap-icons";
+import { setClienteNombre, setClienteCorreo, setClienteId } from '@/lib/services/clientService';
 
-export default function LoginModal({ show, handleClose }) {
+
+export default function LoginModal({ show, handleClose, onLoginSuccess }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [contrasenia, setContrasenia] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [validated, setValidated] = useState(false);
-  const [message, setMessage] = useState(null); //  mensaje de éxito o error
-  const [variant, setVariant] = useState('success'); //  tipo de alerta
+  const [message, setMessage] = useState(null);
+  const [variant, setVariant] = useState('success');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    let newErrors = {};
+  const validateForm = () => {
+    const newErrors = {};
+    if (!email) newErrors.email = 'El correo es obligatorio';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Formato de correo inválido';
 
-    // Validación de email
-    if (!email) {
-      newErrors.email = 'El correo es obligatorio';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'El correo no tiene un formato válido';
-    }
-
-    // Validación de contraseña
-    if (!password) {
-      newErrors.password = 'La contraseña es obligatoria';
-    } else if (password.length < 8) {
-      newErrors.password = 'La contraseña debe tener al menos 8 caracteres';
-    }
+    if (!contrasenia) newErrors.contrasenia = 'La contraseña es obligatoria';
+    else if (contrasenia.length < 8) newErrors.contrasenia = 'La contraseña debe tener al menos 8 caracteres';
 
     setErrors(newErrors);
-    setValidated(true);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    if (Object.keys(newErrors).length === 0) {
-      // Aquí iría la lógica real de login (API, auth, etc.)
-      console.log('Login exitoso con:', { email, password });
-
-      // Mostrar mensaje de éxito
-      setMessage('Inicio de sesión exitoso, bienvenido 👋');
-      setVariant('success');
-
-      // Limpiar campos
-      setEmail('');
-      setPassword('');
-
-      // Cerrar modal después de un tiempo (opcional)
-      setTimeout(() => {
-        setMessage(null);
-        handleClose();
-      }, 2000);
-    } else {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
       setMessage('Revisa los campos e inténtalo de nuevo.');
       setVariant('danger');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, contrasenia })
+      });
+
+      if (response.ok) {
+        const usuario = await response.json();
+        setClienteNombre(usuario.nombre);
+        setClienteCorreo(usuario.correo);
+        setClienteId(usuario.id);
+        setMessage(`¡Bienvenido, ${usuario.nombre}!`);
+        setVariant('success');
+        setEmail('');
+        setContrasenia('');
+        if (onLoginSuccess) onLoginSuccess(usuario);
+        setTimeout(() => {
+          setMessage(null);
+          handleClose();
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.mensaje || 'Correo o contraseña incorrectos');
+        setVariant('danger');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('Error al conectar con el servidor');
+      setVariant('danger');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,9 +80,8 @@ export default function LoginModal({ show, handleClose }) {
       </Modal.Header>
       <Modal.Body>
         {message && <Alert variant={variant}>{message}</Alert>}
-
-        <Form noValidate validated={validated} onSubmit={handleSubmit}>
-          <Form.Group className="mb-3" controlId="formBasicEmail">
+        <Form noValidate onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="formEmail">
             <Form.Label>Correo electrónico</Form.Label>
             <Form.Control
               type="email"
@@ -73,34 +90,45 @@ export default function LoginModal({ show, handleClose }) {
               onChange={(e) => setEmail(e.target.value)}
               isInvalid={!!errors.email}
             />
-            <Form.Control.Feedback type="invalid">
-              {errors.email}
-            </Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formBasicPassword">
-            <Form.Label>Contraseña</Form.Label>
-            <Form.Control
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              isInvalid={!!errors.password}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.password}
-            </Form.Control.Feedback>
-          </Form.Group>
+        <Form.Group className="mb-3" controlId="formContrasenia">
+  <Form.Label>Contraseña</Form.Label>
 
-          <Button variant="primary" type="submit" className="w-100">
-            Iniciar sesión
+  <InputGroup>
+    <Form.Control
+      type={showPassword ? "text" : "password"}
+      placeholder="Contraseña"
+      value={contrasenia}
+      onChange={(e) => setContrasenia(e.target.value)}
+      isInvalid={!!errors.contrasenia}
+    />
+
+    <Button
+      variant="outline-secondary"
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? <EyeSlash /> : <Eye />}
+    </Button>
+  </InputGroup>
+
+  <Form.Control.Feedback type="invalid">
+    {errors.contrasenia}
+  </Form.Control.Feedback>
+</Form.Group>
+
+
+          <Button variant="primary" type="submit" className="w-100" disabled={isSubmitting}>
+            {isSubmitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </Button>
 
-          <Form.Text className="text-muted d-flex flex-column align-item-center text-center mt-3">
-            <Link href="../recuperarPassword" className="me-3 text-decoration-none">
+          <Form.Text className="text-muted d-flex flex-column align-items-center text-center mt-3">
+            <Link href="../recuperarPassword" className="text-decoration-none mb-1">
               ¿Olvidaste tu contraseña?
             </Link>
-            <Link href="../registrarUsuario" className="me-3 text-decoration-none">
+            <Link href="../registrarUsuario" className="text-decoration-none">
               ¿No tienes cuenta? Regístrate
             </Link>
           </Form.Text>

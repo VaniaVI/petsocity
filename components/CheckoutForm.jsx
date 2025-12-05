@@ -1,6 +1,7 @@
 "use client";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import { fmtCLP } from "@/lib/formatters";
+import { useEffect, useState } from "react";
 
 export default function CheckoutForm({
   formData,
@@ -14,6 +15,26 @@ export default function CheckoutForm({
   handleSubmit,
   total,
 }) {
+
+  const [regiones, setRegiones] = useState([]);
+  const [comunas, setComunas] = useState([]);
+
+  useEffect(() => {
+  fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones")
+    .then(res => res.json())
+    .then(data => setRegiones(data))
+    .catch(err => console.error(err));
+}, []);
+
+useEffect(() => {
+  if (!formData.region) return;
+
+  fetch(`https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${formData.region}/comunas`)
+    .then(res => res.json())
+    .then(data => setComunas(data))
+    .catch(err => console.error(err));
+}, [formData.region]);
+
 
 
   return (
@@ -136,7 +157,7 @@ export default function CheckoutForm({
       </p>
 
       <Row className="mb-3">
-        <Col md={8}>
+        <Col md={12}>
           <Form.Group>
             <Form.Label>Calle{metodo === "domicilio" && "*"}</Form.Label>
             <Form.Control
@@ -155,19 +176,6 @@ export default function CheckoutForm({
             </Form.Control.Feedback>
           </Form.Group>
         </Col>
-        <Col md={4}>
-          <Form.Group>
-            <Form.Label>Depto (opcional)</Form.Label>
-            <Form.Control
-              type="text"
-              name="departamento"
-              placeholder="Ej: 603"
-              value={formData.departamento}
-              onChange={handleChange}
-              disabled={metodo === "retiro"}
-            />
-          </Form.Group>
-        </Col>
       </Row>
 
       <Row className="mb-3">
@@ -177,16 +185,15 @@ export default function CheckoutForm({
             <Form.Select
               name="region"
               value={formData.region}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
               onBlur={handleBlur}
               isInvalid={touched.region && !!errors.region}
               disabled={metodo === "retiro"}
             >
-              <option value="">Seleccione una región</option>
-              <option value="Región Metropolitana">Región Metropolitana</option>
-              <option value="Región de Valparaíso">Región de Valparaíso</option>
-              <option value="Región del Biobío">Región del Biobío</option>
-              <option value="Región de la Araucanía">Región de la Araucanía</option>
+              <option value="">Selecciona una región</option>
+              {regiones.map(r => (
+                <option key={r.codigo} value={r.codigo}>{r.nombre}</option>
+              ))}
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {errors.region}
@@ -199,17 +206,15 @@ export default function CheckoutForm({
             <Form.Select
               name="comuna"
               value={formData.comuna}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, comuna: e.target.value })}
               onBlur={handleBlur}
               isInvalid={touched.comuna && !!errors.comuna}
               disabled={metodo === "retiro"}
             >
-              <option value="">Seleccione una comuna</option>
-              <option value="Cerrillos">Cerrillos</option>
-              <option value="Santiago">Santiago</option>
-              <option value="Providencia">Providencia</option>
-              <option value="Las Condes">Las Condes</option>
-              <option value="Maipú">Maipú</option>
+            <option value="">Selecciona una comuna</option>
+              {comunas.map(r => (
+                <option key={r.codigo} value={r.codigo}>{r.nombre}</option>
+              ))}
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {errors.comuna}
