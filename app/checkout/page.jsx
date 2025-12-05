@@ -255,7 +255,7 @@ useEffect(() => {
       const resultado = await procesarCheckout(formData, carro);
 
       if (resultado.exito) {
-        router.push(`/compraExitosa?orderId=${resultado.orden.id}`);
+        router.push(`/compraExitosa?orderId=${resultado.orden.orderId}`);
         clearCart();
       } else {
         alert("❌ " + resultado.mensaje);

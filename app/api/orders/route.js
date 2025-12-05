@@ -16,6 +16,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     console.log("BODY RECIBIDO EN API:", body); // 👈 AGREGA ESTO
+    
     const { orderNumber, orderCode } = generateOrderCode();
 
     const newOrder = {
@@ -27,6 +28,9 @@ export async function POST(request) {
     };
 
     orders.push(newOrder);
+    console.log("BODY RECIBIDO EN API:", body);
+    console.log("ORDERS:", orders);
+
 
     return NextResponse.json(
       {
