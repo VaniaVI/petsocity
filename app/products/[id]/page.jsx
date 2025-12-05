@@ -340,7 +340,7 @@ export default function DetalleProducto() {
                       {fmtCLP(rel.precio)}
                     </Card.Text>
                     <div className="mt-auto">
-                      <Link href={`/products/${rel.idProducto}`} passHref>
+                      <Link href={`/products/${rel.id}`} passHref>
                         <Button variant="outline-primary" size="sm">
                           Ver detalle
                         </Button>

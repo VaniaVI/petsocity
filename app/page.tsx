@@ -77,6 +77,8 @@ export default function Home() {
       const { scrollLeft, clientWidth } = scrollRef.current;
       const scrollAmount =
         direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+      const scrollAmount =
+        direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
       scrollRef.current.scrollTo({ left: scrollAmount, behavior: "smooth" });
     }
   };
