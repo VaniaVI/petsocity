@@ -1,5 +1,6 @@
 "use client";
 
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Container, Card, Row, Col, Table, Button, Alert } from "react-bootstrap";
 import { useSearchParams } from "next/navigation";
