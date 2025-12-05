@@ -11,6 +11,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-producto-product
 
 // Adaptador: pasa del JSON del backend al formato que usa el front
 function mapApiProduct(apiProd) {
+
+  const id = apiProd.idProducto;
+  
   return {
     id: apiProd.idProducto,           
     nombre: apiProd.nombre,

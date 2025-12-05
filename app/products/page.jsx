@@ -8,6 +8,9 @@ import { Suspense } from "react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-producto-production.up.railway.app";
 
 function mapApiProduct(apiProd) {
+
+    const id = apiProd.idProducto;
+    
     return {
         id: apiProd.idProducto,           
         nombre: apiProd.nombre,
