@@ -17,7 +17,7 @@ function mapApiProduct(apiProd) {
     descripcion: apiProd.descripcion,
     precio: Number(apiProd.precio),
     categoria: apiProd.categoria?.nombre ?? "",
-    imagen: apiProd.imagenUrl ?? "",
+    imagen: `/productos/perro${id}.png`,
     etiquetas: [],
     // stock lo agregamos después (cuando llamemos al microservicio de inventario)
   };

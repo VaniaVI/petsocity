@@ -16,7 +16,7 @@ function mapApiProduct(apiProd) {
         // categoria viene como objeto -> usamos solo el nombre
         categoria: apiProd.categoria?.nombre ?? "",
         // imagenUrl en backend -> imagen en el front
-        imagen: apiProd.imagenUrl ?? "",
+        imagen: `/productos/perro${id}.png`,
         // por ahora no existen etiquetas en BD, lo dejamos vacío
         etiquetas: []
     };
