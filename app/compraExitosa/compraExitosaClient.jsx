@@ -42,7 +42,21 @@ export default function CompraExitosaPage() {
         const comunasData = await comunasRes.json();
 
         const regionNombre = regionesData.find(r => r.codigo === parsedOrder.customerData.region)?.nombre || "";
-        const comunaNombre = comunasData.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
+let comunaNombre = "";
+
+// Verificamos que comunasData tenga un array
+if (Array.isArray(comunasData)) {
+  comunaNombre = comunasData.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
+} else if (Array.isArray(comunasData.comunas)) {
+  comunaNombre = comunasData.comunas.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
+} else {
+  // Si no hay datos, usamos un string vacío
+  console.warn("comunasData no tiene comunas disponibles para la región:", parsedOrder.customerData.region, comunasData);
+  comunaNombre = "";
+}
+
+parsedOrder.customerData.comunaNombre = comunaNombre;
+
 
         parsedOrder.customerData.regionNombre = regionNombre;
         parsedOrder.customerData.comunaNombre = comunaNombre;
