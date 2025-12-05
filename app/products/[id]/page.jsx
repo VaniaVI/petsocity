@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useCart } from "@/hooks/useCart.js";
 import { fmtCLP } from "@/lib/formatters";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-producto-production.up.railway.app";
 
 // Adaptador: pasa del JSON del backend al formato que usa el front
 function mapApiProduct(apiProd) {
