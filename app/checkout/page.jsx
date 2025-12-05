@@ -102,8 +102,8 @@ useEffect(() => {
         verificarCorreo: data.email || "",
         calle: data.direccion || "",
         departamento: data.departamento || "",
-        region: data.region || "",
-        comuna: data.comuna || "",
+        region: data.regionCodigo || "",
+        comuna: data.comunaCodigo || "",
         indicaciones: data.indicaciones || "",
       });
 
