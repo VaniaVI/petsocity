@@ -1,6 +1,6 @@
 "use client";
-
 export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { Container, Card, Row, Col, Table, Button, Alert } from "react-bootstrap";
 import { useSearchParams } from "next/navigation";
@@ -12,22 +12,19 @@ export default function CompraExitosaPage() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  
 
   useEffect(() => {
-    async function fetchOrder() {
-      if (!orderId) return;
+    if (!orderId) return;
 
+    async function fetchOrder() {
       try {
-        const res = await fetch(
-          `https://ordenes-production-ac23.up.railway.app/api/v1/orders/${orderId}`
-        );
-        console.log("orderId recibido:", orderId);
+        // Obtener la orden desde el backend
+        const res = await fetch(`https://ordenes-production-ac23.up.railway.app/api/v1/orders/${orderId}`);
         if (!res.ok) throw new Error("No se pudo obtener la orden");
 
         const data = await res.json();
 
-        // ✅ Parsear los campos TEXT que vienen como string
+        // Parsear campos TEXT que vienen como string
         const parsedOrder = {
           ...data,
           customerData: JSON.parse(data.customerData),
@@ -35,9 +32,9 @@ export default function CompraExitosaPage() {
           totals: JSON.parse(data.totals)
         };
 
+        // Obtener regiones y comunas
         const regionesRes = await fetch("https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones");
         const regionesData = await regionesRes.json();
-
 
         const comunasRes = await fetch(
           `https://petsocitymicroservicio-production.up.railway.app/api/v1/usuarios/regiones/${parsedOrder.customerData.region}/comunas`
@@ -47,7 +44,6 @@ export default function CompraExitosaPage() {
         const regionNombre = regionesData.find(r => r.codigo === parsedOrder.customerData.region)?.nombre || "";
         const comunaNombre = comunasData.find(c => c.codigo === parsedOrder.customerData.comuna)?.nombre || "";
 
-        // Guardamos los nombres en customerData
         parsedOrder.customerData.regionNombre = regionNombre;
         parsedOrder.customerData.comunaNombre = comunaNombre;
 
@@ -61,7 +57,6 @@ export default function CompraExitosaPage() {
 
     fetchOrder();
   }, [orderId]);
-
 
   if (loading) {
     return (
@@ -96,7 +91,6 @@ export default function CompraExitosaPage() {
       </Card>
 
       <Row className="g-4">
-        {/* Información del cliente */}
         <Col lg={6}>
           <Card className="shadow-sm">
             <Card.Header className="bg-primary text-white">
@@ -110,7 +104,6 @@ export default function CompraExitosaPage() {
           </Card>
         </Col>
 
-        {/* Dirección */}
         <Col lg={6}>
           <Card className="shadow-sm">
             <Card.Header className="bg-primary text-white">
@@ -133,7 +126,6 @@ export default function CompraExitosaPage() {
         </Col>
       </Row>
 
-      {/* Productos */}
       <Card className="shadow-sm my-4">
         <Card.Header className="bg-primary text-white">
           <h5 className="mb-0">Detalle de productos</h5>
@@ -168,7 +160,6 @@ export default function CompraExitosaPage() {
         </Card.Body>
       </Card>
 
-      {/* Botones */}
       <div className="d-flex gap-3 justify-content-center mt-4">
         <Button variant="secondary" onClick={() => window.print()}>
           Imprimir boleta
@@ -188,3 +179,4 @@ export default function CompraExitosaPage() {
     </Container>
   );
 }
+
