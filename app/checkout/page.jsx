@@ -356,6 +356,7 @@ useEffect(() => {
                             objectFit: "cover",
                             borderRadius: "8px",
                           }}
+                          
                         />
                       )}
                       <div className="flex-grow-1">
