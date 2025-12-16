@@ -1,5 +1,11 @@
 'use client';
 
+import dynamic from "next/dynamic";
+
+const TiendaMapa = dynamic(() => import("@/components/ShopMap"), {
+  ssr: false,
+});
+
 export default function NosotrosPage() {
   return (
     <main className="container py-5">
@@ -71,6 +77,35 @@ export default function NosotrosPage() {
               <p className="mb-0">Despachos rápidos y seguimiento de tu compra.</p>
             </div>
           </div>
+        </div>
+      </section>
+  
+      {/* Ubicación */}
+      <section className="row g-4 mb-5 align-items-center">
+        <div className="col-12 col-lg-5">
+          <h2 className="h5 fw-semibold mb-2">¿Dónde nos encontramos?</h2>
+          <p className="mb-3">
+            Contamos con una tienda física donde puedes retirar tus productos o
+            visitarnos para conocer más sobre Petsocity.
+          </p>
+
+          <a
+            className="btn btn-outline-primary"
+            target="_blank"
+            rel="noreferrer"
+            href="https://www.openstreetmap.org/?mlat=-33.4489&mlon=-70.6693#map=16/-33.4489/-70.6693"
+          >
+            Ver en mapa
+          </a>
+        </div>
+
+        <div className="col-12 col-lg-7">
+          <TiendaMapa
+            nombre="Petsocity - Tienda Central"
+            direccion="Santiago, Chile"
+            lat={-33.4489}
+            lng={-70.6693}
+          />
         </div>
       </section>
 
