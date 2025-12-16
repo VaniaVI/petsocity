@@ -151,6 +151,7 @@ export default function Home() {
         </div>
       </section>
       
+      {/* Clima*/}
       <div className="container mt-4 w-100">
         <WeatherWidget />
       </div>

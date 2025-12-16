@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 export default function WeatherWidget() {
-  const [weather, setWeather] = useState<any>(null);
+  const [location, setLocation] = useState<any>(null);
   const [status, setStatus] = useState("idle");
 
   useEffect(() => {
@@ -17,11 +17,13 @@ export default function WeatherWidget() {
       async ({ coords }) => {
         try {
           const res = await fetch(
-              `https://ordenes-production-ac23.up.railway.app/api/v1/weather?lat=-33.45&lon=-70.66`
+            `https://ordenes-production-ac23.up.railway.app/api/v1/weather?lat=${coords.latitude}&lon=${coords.longitude}`
           );
+
           if (!res.ok) throw new Error("Error en la API");
+
           const data = await res.json();
-          setWeather(data);
+          setLocation(data);
           setStatus("ok");
         } catch {
           setStatus("error");
@@ -31,18 +33,22 @@ export default function WeatherWidget() {
     );
   }, []);
 
-  if (status === "loading") return <p>Cargando clima…</p>;
+  if (status === "loading") return <p>Cargando ubicación…</p>;
   if (status === "denied") return <p>Ubicación denegada.</p>;
-  if (status === "error") return <p>No se pudo obtener el clima.</p>;
-  if (!weather) return null;
+  if (status === "error") return <p>No se pudo obtener la ubicación.</p>;
+  if (!location) return null;
 
-  const today = weather?.forecast?.[0];
+  const loc = location?.locations?.[0];
+
   return (
-    <div className="card mt-3">
-      <div className="card-header bg-info text-white">Clima en tu zona</div>
+    <div className="card mt-4 shadow-sm">
+      <div className="card-header bg-info text-white">
+        Tu ubicación aproximada
+      </div>
       <div className="card-body">
-        <p><strong>Temperatura:</strong> {today?.temperature?.max}°C máx / {today?.temperature?.min}°C mín</p>
-        <p><strong>Condición:</strong> {today?.symbol?.desc}</p>
+        <p><strong>Ciudad:</strong> {loc?.name}</p>
+        <p><strong>Región:</strong> {loc?.adminArea}</p>
+        <p><strong>País:</strong> {loc?.country}</p>
       </div>
     </div>
   );
