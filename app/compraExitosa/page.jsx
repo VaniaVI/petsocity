@@ -1,13 +1,10 @@
-import dynamic from "next/dynamic";
 import { Suspense } from "react";
-const CompraExitosaComponent = dynamic(() => import("./compraExitosaClient"), {
-  ssr: false, // ⚠️ evita prerendering
-});
+import CompraExitosaClient from "./compraExitosaClient";
 
 export default function Page() {
-  return ( 
-  <Suspense fallback={<div>Cargando...</div>}>
-      <CompraExitosaComponent />
+  return (
+    <Suspense fallback={<p>Cargando compra...</p>}>
+      <CompraExitosaClient />
     </Suspense>
-  )
+  );
 }

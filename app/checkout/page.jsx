@@ -244,27 +244,39 @@ useEffect(() => {
   // MANEJO DEL SUBMIT
   // ============================================
    const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (carrito.length === 0) {
-      alert("Tu carrito está vacío.");
-      return;
+  console.log("🟢 SUBMIT checkout");
+  console.log("📦 Carrito:", carrito);
+  console.log("🧾 FormData:", formData);
+
+  if (carrito.length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+
+  try {
+    console.log("➡️ Llamando a procesarCheckout...");
+    const resultado = await procesarCheckout(formData, carro);
+
+    console.log("✅ Resultado checkout:", resultado);
+
+    if (resultado?.exito) {
+      console.log("➡️ Redirigiendo a compraExitosa con orderId:", resultado?.orden?.orderId);
+      router.push(`/compraExitosa?orderId=${resultado.orden.orderId}`);
+      const paymentUrl = resultado.payment.url + "?token=" + resultado.payment.token;
+      window.location.href = paymentUrl;
+      clearCart();
+    } else {
+      console.error("❌ Checkout falló:", resultado);
+      alert("❌ " + (resultado?.mensaje || "Error desconocido"));
     }
+  } catch (error) {
+    console.error("🔥 ERROR REAL en checkout:", error);
+    alert("Hubo un problema al procesar tu compra.");
+  }
+};
 
-    try {
-      const resultado = await procesarCheckout(formData, carro);
-
-      if (resultado.exito) {
-        router.push(`/compraExitosa?orderId=${resultado.orden.orderId}`);
-        clearCart();
-      } else {
-        alert("❌ " + resultado.mensaje);
-      }
-    } catch (error) {
-      console.error("Error en checkout:", error);
-      alert("Hubo un problema al procesar tu compra.");
-    }
-  };
 
   // ============================================
   // LOADING STATE

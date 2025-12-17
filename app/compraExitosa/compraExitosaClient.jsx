@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { Container, Card, Row, Col, Table, Button, Alert } from "react-bootstrap";
@@ -9,6 +8,8 @@ import { fmtCLP } from "@/lib/formatters";
 export default function CompraExitosaPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
+
+  console.log("🧾 orderId:", orderId);
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
