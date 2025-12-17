@@ -30,6 +30,51 @@ body {
   line-height: 1.6;
 }
 
+/* CLIMA */
+.weather-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  margin-left: 16px;
+
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+
+  cursor: default;
+  
+  transition: 
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.weather-badge .icon {
+  font-size: 1rem;
+}
+
+.weather-badge .temp {
+  font-weight: 600;
+}
+
+.weather-badge .city {
+  color: #666;
+}
+.weather-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  background-color: #f8f9fa;
+}
+/* CLIMA */
+
 /* 🪟 Overlay translúcido */
 body::before {
   content: "";

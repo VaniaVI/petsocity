@@ -10,6 +10,7 @@ import UserSessionModal from './UserSessionModal';
 import { useCart } from '@/hooks/useCart';
 import { usePathname } from "next/navigation";
 import { getClienteNombre } from "@/lib/services/clientService";
+import WeatherBadge from "@/components/WeatherBadge";
 
 export default function NavbarPage() {
   const [showModal, setShowModal] = useState(false);
@@ -63,17 +64,26 @@ export default function NavbarPage() {
               <Nav.Link as={Link} href="/contacto" className={`mx-2 fw-semibold ${isActive("/contacto") ? "active-link" : "text-dark"}`}>Contacto</Nav.Link>
               <Nav.Link as={Link} href="/blog" className={`mx-2 fw-semibold ${isActive("/blog") ? "active-link" : "text-dark"}`}>Blog</Nav.Link>
             </Nav>
-
+            
+            {/* 🔥 ACCIONES DERECHA */}
             <div className="d-flex align-items-center">
+              {/* CLIMA */}
+              <WeatherBadge />
+
+              {/* USUARIO */}
               <Button variant="outline-primary" className="me-2" onClick={handleOpenModal}>
                 <PersonCircle size={24} />
               </Button>
 
+              {/* CARRITO */}
               <Nav.Link as={Link} href="/carrito" className="mx-2 position-relative">
                 <Button variant="outline-secondary">
                   <CartPlus size={24} />
                   {itemCount > 0 && (
-                    <span className="position-absolute badge rounded-pill bg-danger" style={{ fontSize: "0.75rem", transform: "translate(40%, -10%)" }}>
+                    <span
+                      className="position-absolute badge rounded-pill bg-danger"
+                      style={{ fontSize: "0.75rem", transform: "translate(40%, -10%)" }}
+                    >
                       {itemCount}
                     </span>
                   )}

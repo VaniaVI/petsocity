@@ -10,7 +10,7 @@ export default function CartPage() {
   } = useCart("retiro");
 
   // ============================================
-  // RENDERIZADO CONDICIONAL: CARRITO VACÍO
+  // RENDERIZADO CONDICIONAL: CARRITO VACÍz
   // ============================================
   if (!items || items.length === 0) {
     return (

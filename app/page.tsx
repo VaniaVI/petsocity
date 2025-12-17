@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowRightCircle, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { useRef, useEffect, useState} from "react";
 import { API_URL } from "@/lib/services/productsService";
+import WeatherWidget from "@/components/WeatherBadge";
+
 
 interface ApiCategoria {
   nombre: string;
