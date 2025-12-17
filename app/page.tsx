@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRightCircle, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { useRef, useEffect, useState} from "react";
 import { API_URL } from "@/lib/services/productsService";
-import WeatherWidget from "@/components/WeatherWidget";
+import WeatherWidget from "@/components/WeatherBadge";
 
 
 interface ApiCategoria {
@@ -150,11 +150,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      {/* Clima*/}
-      <div className="container mt-4 w-100">
-        <WeatherWidget />
-      </div>
 
       {/* 🛍️ Sección de productos tendencia */}
       <section className="container py-5 position-relative">
