@@ -264,7 +264,6 @@ useEffect(() => {
     if (resultado?.exito) {
       console.log("➡️ Redirigiendo a compraExitosa con orderId:", resultado?.orden?.orderId);
       router.push(`/compraExitosa?orderId=${resultado.orden.orderId}`);
-      const paymentUrl = resultado.payment.url + "?token=" + resultado.payment.token;
       window.location.href = paymentUrl;
       clearCart();
     } else {
